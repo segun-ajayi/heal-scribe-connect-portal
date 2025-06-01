@@ -24,11 +24,11 @@ export const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">DS</span>
+              <span className="text-white font-bold text-lg">FW</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Dr. Sarah Mitchell</h1>
-              <p className="text-sm text-gray-600">Cardiovascular Surgeon</p>
+              <h1 className="text-xl font-bold text-gray-900">Dr. Funmilola Wuraola</h1>
+              <p className="text-sm text-gray-600">General Surgeon</p>
             </div>
           </Link>
 

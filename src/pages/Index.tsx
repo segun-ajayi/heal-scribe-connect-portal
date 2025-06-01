@@ -14,12 +14,12 @@ const Index = () => {
   ];
 
   const specializations = [
-    "Cardiac Bypass Surgery",
-    "Heart Valve Repair",
-    "Coronary Angioplasty",
-    "Minimally Invasive Surgery",
-    "Pediatric Cardiology",
-    "Heart Transplantation",
+    "General Surgery",
+    "Laparoscopic Surgery",
+    "Emergency Surgery",
+    "Trauma Surgery",
+    "Abdominal Surgery",
+    "Surgical Oncology",
   ];
 
   return (
@@ -30,12 +30,12 @@ const Index = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                Leading Cardiovascular Surgeon
+                Leading General Surgeon
               </h1>
               <p className="text-xl text-blue-100 mb-8">
-                With over 15 years of experience in cardiovascular surgery, Dr. Sarah Mitchell 
-                has dedicated her career to advancing heart care through innovative surgical 
-                techniques and compassionate patient care.
+                Dr. Funmilola Wuraola is a distinguished General Surgeon at Obafemi Awolowo University 
+                Teaching Hospitals Complex, Ile-Ife, dedicated to providing exceptional surgical care 
+                through innovative techniques and compassionate patient treatment.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/appointments">
@@ -82,8 +82,8 @@ const Index = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Areas of Expertise</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Specialized in cutting-edge cardiovascular procedures with a focus on 
-              minimally invasive techniques and patient-centered care.
+              Specialized in comprehensive general surgical procedures with expertise in 
+              modern techniques and patient-centered care at OAUTHC.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -119,13 +119,13 @@ const Index = () => {
             {[1, 2, 3].map((i) => (
               <Card key={i} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
-                  <Badge className="mb-3">Cardiology</Badge>
+                  <Badge className="mb-3">General Surgery</Badge>
                   <h3 className="font-semibold text-gray-900 mb-3">
-                    Advanced Techniques in Minimally Invasive Heart Surgery
+                    Modern Approaches in General Surgery Practice
                   </h3>
                   <p className="text-gray-600 text-sm mb-4">
-                    Exploring the latest developments in surgical procedures that reduce 
-                    patient recovery time and improve outcomes...
+                    Exploring contemporary surgical techniques and their impact on patient 
+                    outcomes in general surgery practice...
                   </p>
                   <div className="flex items-center text-sm text-gray-500">
                     <Clock className="w-4 h-4 mr-1" />
@@ -145,7 +145,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Take the Next Step?</h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Schedule a consultation to discuss your cardiovascular health and treatment options.
+            Schedule a consultation to discuss your surgical needs and treatment options with Dr. Wuraola.
           </p>
           <Link to="/appointments">
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
