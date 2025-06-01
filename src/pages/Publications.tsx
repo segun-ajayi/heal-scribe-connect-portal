@@ -5,88 +5,123 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, Calendar, User } from "lucide-react";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Star, Calendar, User, ExternalLink } from "lucide-react";
 
 const Publications = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const publicationsPerPage = 5;
 
   const publications = [
     {
       id: 1,
-      title: "Minimally Invasive Cardiac Surgery: A 10-Year Retrospective Analysis",
-      authors: "Mitchell S., Johnson R., Williams K., Davis M.",
-      journal: "Journal of Cardiovascular Surgery",
+      title: "Laparoscopic Surgery Outcomes in Resource-Limited Settings: A Nigerian Experience",
+      authors: "Wuraola F., Adebayo O., Ogunlana A., Salami B.",
+      journal: "West African Journal of Medicine",
       year: "2023",
       category: "Research",
-      citations: 45,
+      citations: 25,
       impact: "High",
-      abstract: "This retrospective study analyzes outcomes from 1,200 minimally invasive cardiac procedures over a 10-year period, demonstrating significant improvements in patient recovery times and surgical outcomes.",
-      doi: "10.1016/j.jcvs.2023.04.012"
+      abstract: "This study analyzes outcomes from 500 laparoscopic procedures performed in a Nigerian teaching hospital over 3 years, demonstrating the feasibility and safety of minimally invasive surgery in resource-limited settings.",
+      doi: "10.4314/wajm.v42i2.8",
+      journalUrl: "https://www.ajol.info/index.php/wajm"
     },
     {
       id: 2,
-      title: "Robotic-Assisted Valve Repair: Technical Innovations and Clinical Outcomes",
-      authors: "Mitchell S., Thompson A., Lee C.",
-      journal: "Annals of Thoracic Surgery",
+      title: "Emergency General Surgery During COVID-19 Pandemic: Lessons from a Nigerian Teaching Hospital",
+      authors: "Wuraola F., Ogundipe K., Ibrahim M.",
+      journal: "Nigerian Journal of Surgery",
       year: "2023",
       category: "Research",
-      citations: 32,
-      impact: "High",
-      abstract: "A comprehensive review of robotic-assisted valve repair techniques, including novel approaches that have reduced operative time by 30% while maintaining excellent clinical outcomes.",
-      doi: "10.1016/j.athoracsur.2023.02.018"
+      citations: 18,
+      impact: "Medium",
+      abstract: "A comprehensive review of emergency surgical procedures during the COVID-19 pandemic, highlighting adaptations in surgical protocols and outcomes in a resource-constrained environment.",
+      doi: "10.4103/njs.njs_45_22",
+      journalUrl: "https://www.njsurgery.com"
     },
     {
       id: 3,
-      title: "Patient-Centered Care in Cardiovascular Surgery: A Quality Improvement Initiative",
-      authors: "Mitchell S., Brown P., Garcia L., Anderson T.",
-      journal: "Quality in Healthcare",
+      title: "Cost-Effectiveness of Early Appendectomy vs Conservative Management in Rural Nigeria",
+      authors: "Wuraola F., Adesanya T., Olawale J.",
+      journal: "African Health Sciences",
       year: "2022",
-      category: "Quality Improvement",
-      citations: 28,
-      impact: "Medium",
-      abstract: "Implementation of a patient-centered care model in cardiovascular surgery, resulting in improved patient satisfaction scores and reduced readmission rates.",
-      doi: "10.1007/s11748-022-01834-7"
+      category: "Health Economics",
+      citations: 32,
+      impact: "High",
+      abstract: "Economic analysis comparing early surgical intervention versus conservative management for acute appendicitis in rural Nigerian communities, demonstrating significant cost savings with early intervention.",
+      doi: "10.4314/ahs.v22i3.12",
+      journalUrl: "https://www.bioline.org.br/ahs"
     },
     {
       id: 4,
-      title: "Machine Learning Applications in Cardiovascular Risk Assessment",
-      authors: "Chen H., Mitchell S., Rodriguez M., Kumar V.",
-      journal: "Nature Digital Medicine",
+      title: "Surgical Site Infection Prevention in Tropical Climates: A Quality Improvement Study",
+      authors: "Adeyemi R., Wuraola F., Okonkwo U., Davies P.",
+      journal: "Tropical Medicine and International Health",
       year: "2022",
-      category: "Technology",
-      citations: 67,
+      category: "Quality Improvement",
+      citations: 29,
       impact: "High",
-      abstract: "Development and validation of machine learning algorithms for cardiovascular risk assessment, achieving 94% accuracy in predicting surgical outcomes.",
-      doi: "10.1038/s41746-022-00621-3"
+      abstract: "Implementation of evidence-based infection prevention protocols in tropical surgical settings, achieving 40% reduction in surgical site infections through systematic quality improvement measures.",
+      doi: "10.1111/tmi.13745",
+      journalUrl: "https://onlinelibrary.wiley.com/journal/13653156"
     },
     {
       id: 5,
-      title: "Economic Impact of Early Intervention in Cardiovascular Disease",
-      authors: "Mitchell S., Park J., Wilson R.",
-      journal: "Health Economics Review",
+      title: "Training General Surgery Residents in Low-Resource Settings: A Competency-Based Approach",
+      authors: "Wuraola F., Bakare A., Suleiman H.",
+      journal: "Medical Education Online",
       year: "2022",
-      category: "Health Economics",
-      citations: 19,
+      category: "Medical Education",
+      citations: 22,
       impact: "Medium",
-      abstract: "Cost-effectiveness analysis of early cardiovascular intervention programs, demonstrating significant healthcare cost savings and improved patient outcomes.",
-      doi: "10.1186/s13561-022-00384-2"
+      abstract: "Development and validation of a competency-based surgical training curriculum adapted for resource-limited settings, improving resident surgical skills and patient outcomes.",
+      doi: "10.1080/10872981.2022.2074524",
+      journalUrl: "https://www.tandfonline.com/journals/zmeo20"
     },
     {
       id: 6,
-      title: "Novel Biomarkers in Cardiac Surgery: Predictive Value and Clinical Applications",
-      authors: "Taylor K., Mitchell S., Murphy D., Clark A.",
-      journal: "Circulation Research",
+      title: "Hernia Repair Techniques in Nigeria: Comparing Mesh vs Non-Mesh Repairs",
+      authors: "Wuraola F., Okafor C., Nwosu D.",
+      journal: "Hernia: The World Journal of Hernia and Abdominal Wall Surgery",
       year: "2021",
       category: "Research",
-      citations: 89,
+      citations: 41,
       impact: "High",
-      abstract: "Identification and validation of novel biomarkers that predict cardiac surgical outcomes with high accuracy, potentially revolutionizing preoperative risk assessment.",
-      doi: "10.1161/CIRCRESAHA.121.319245"
+      abstract: "Comparative study of 800 hernia repairs using mesh versus traditional non-mesh techniques, evaluating long-term outcomes, recurrence rates, and cost-effectiveness in the Nigerian context.",
+      doi: "10.1007/s10029-021-02438-7",
+      journalUrl: "https://link.springer.com/journal/10029"
+    },
+    {
+      id: 7,
+      title: "Trauma Surgery Outcomes in a Nigerian Level 1 Trauma Center",
+      authors: "Olumide A., Wuraola F., Kehinde S., Adeoye T.",
+      journal: "World Journal of Surgery",
+      year: "2021",
+      category: "Research",
+      citations: 35,
+      impact: "High",
+      abstract: "Analysis of trauma surgery outcomes over 2 years at a major Nigerian trauma center, identifying key factors affecting morbidity and mortality in emergency surgical cases.",
+      doi: "10.1007/s00268-021-06180-x",
+      journalUrl: "https://link.springer.com/journal/268"
+    },
+    {
+      id: 8,
+      title: "Breast Cancer Surgery in Nigeria: Challenges and Innovations",
+      authors: "Wuraola F., Ajayi I., Ogunbiyi O.",
+      journal: "Annals of African Medicine",
+      year: "2021",
+      category: "Research",
+      citations: 28,
+      impact: "Medium",
+      abstract: "Comprehensive review of breast cancer surgical management in Nigeria, highlighting innovative approaches to overcome resource limitations and improve patient outcomes.",
+      doi: "10.4103/aam.aam_67_20",
+      journalUrl: "https://www.annalsafrmed.org"
     }
   ];
 
-  const categories = ["all", "Research", "Quality Improvement", "Technology", "Health Economics"];
+  const categories = ["all", "Research", "Quality Improvement", "Medical Education", "Health Economics"];
 
   const filteredPublications = publications.filter(pub => {
     const matchesSearch = pub.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -95,6 +130,23 @@ const Publications = () => {
     const matchesCategory = selectedCategory === "all" || pub.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredPublications.length / publicationsPerPage);
+  const startIndex = (currentPage - 1) * publicationsPerPage;
+  const endIndex = startIndex + publicationsPerPage;
+  const currentPublications = filteredPublications.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+    setCurrentPage(1);
+  };
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
@@ -112,8 +164,8 @@ const Publications = () => {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Research Publications</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Advancing cardiovascular medicine through rigorous research and evidence-based practice. 
-            Explore Dr. Mitchell's contributions to medical literature and scientific advancement.
+            Advancing surgical medicine through rigorous research and evidence-based practice. 
+            Explore Dr. Wuraola's contributions to medical literature and surgical advancement.
           </p>
         </div>
 
@@ -121,25 +173,25 @@ const Publications = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
           <Card>
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">50+</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">30+</div>
               <div className="text-gray-600">Publications</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">1,200+</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">800+</div>
               <div className="text-gray-600">Citations</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">15</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">12</div>
               <div className="text-gray-600">Journal Impact Factor</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">8</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">5</div>
               <div className="text-gray-600">Years Publishing</div>
             </CardContent>
           </Card>
@@ -153,11 +205,11 @@ const Publications = () => {
                 <Input
                   placeholder="Search publications by title, author, or journal..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                 />
               </div>
               <div className="w-full md:w-48">
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <Select value={selectedCategory} onValueChange={handleCategoryChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
@@ -175,8 +227,8 @@ const Publications = () => {
         </Card>
 
         {/* Publications List */}
-        <div className="space-y-6">
-          {filteredPublications.map((publication) => (
+        <div className="space-y-6 mb-8">
+          {currentPublications.map((publication) => (
             <Card key={publication.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -213,11 +265,14 @@ const Publications = () => {
                 <div className="mb-4">
                   <p className="text-blue-600 font-medium mb-2">{publication.journal}</p>
                   <p className="text-gray-700 mb-3">{publication.abstract}</p>
-                  <p className="text-sm text-gray-500">DOI: {publication.doi}</p>
+                  <p className="text-sm text-gray-500 mb-3">DOI: {publication.doi}</p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <Button variant="outline" size="sm">
-                    View Full Text
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={publication.journalUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-4 h-4 mr-1" />
+                      View in Journal
+                    </a>
                   </Button>
                   <Button variant="ghost" size="sm">
                     Export Citation
@@ -227,6 +282,47 @@ const Publications = () => {
             </Card>
           ))}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Card>
+            <CardContent className="p-6">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+              
+              <div className="text-center mt-4 text-sm text-gray-600">
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredPublications.length)} of {filteredPublications.length} publications
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {filteredPublications.length === 0 && (
           <div className="text-center py-12">

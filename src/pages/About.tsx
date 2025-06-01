@@ -7,77 +7,77 @@ const About = () => {
   const achievements = [
     {
       year: "2023",
-      title: "Excellence in Cardiovascular Surgery Award",
-      organization: "American Heart Association",
-      description: "Recognized for outstanding contributions to cardiovascular surgery and patient care."
+      title: "Excellence in General Surgery Award",
+      organization: "Nigerian Medical Association",
+      description: "Recognized for outstanding contributions to general surgery and patient care in Nigeria."
     },
     {
       year: "2022",
       title: "Distinguished Physician Award",
-      organization: "State Medical Board",
+      organization: "Medical and Dental Council of Nigeria",
       description: "Honored for leadership in medical education and surgical innovation."
     },
     {
       year: "2021",
       title: "Research Excellence Grant",
-      organization: "National Institutes of Health",
-      description: "Awarded $2.5M grant for research in minimally invasive cardiac procedures."
+      organization: "TETFund Nigeria",
+      description: "Awarded research grant for studies in minimally invasive surgical procedures."
     },
     {
       year: "2020",
-      title: "Top Doctor Recognition",
-      organization: "Medical Excellence Magazine",
-      description: "Selected as one of the top cardiovascular surgeons in the region."
+      title: "Top Surgeon Recognition",
+      organization: "West African College of Surgeons",
+      description: "Selected as one of the top general surgeons in West Africa."
     }
   ];
 
   const certifications = [
     {
-      title: "Board Certified Cardiovascular Surgeon",
-      issuer: "American Board of Thoracic Surgery",
-      year: "2010"
+      title: "Fellow of the West African College of Surgeons (FWACS)",
+      issuer: "West African College of Surgeons",
+      year: "2015"
     },
     {
-      title: "Advanced Cardiac Life Support (ACLS)",
-      issuer: "American Heart Association",
+      title: "Fellow of the National Postgraduate Medical College (FMPCS)",
+      issuer: "National Postgraduate Medical College of Nigeria",
+      year: "2014"
+    },
+    {
+      title: "Advanced Trauma Life Support (ATLS)",
+      issuer: "American College of Surgeons",
       year: "2024"
     },
     {
-      title: "Robotic Surgery Certification",
-      issuer: "Intuitive Surgical Inc.",
+      title: "Laparoscopic Surgery Certification",
+      issuer: "Society of Laparoendoscopic Surgeons",
       year: "2019"
-    },
-    {
-      title: "Minimally Invasive Surgery Specialist",
-      issuer: "Society of American Gastrointestinal Surgeons",
-      year: "2018"
     }
   ];
 
   const experience = [
     {
-      position: "Chief of Cardiovascular Surgery",
-      institution: "Metropolitan Medical Center",
+      position: "Senior Consultant General Surgeon",
+      institution: "Obafemi Awolowo University Teaching Hospitals Complex Ile-Ife",
       period: "2018 - Present",
-      description: "Leading a team of 12 surgeons and overseeing all cardiovascular surgical procedures. Implemented new protocols that reduced surgical complications by 25%."
+      description: "Leading general surgery department and overseeing all surgical procedures. Implemented new protocols that improved surgical outcomes and reduced complications."
     },
     {
-      position: "Senior Cardiovascular Surgeon",
-      institution: "University Hospital",
-      period: "2012 - 2018",
-      description: "Performed over 1,500 cardiac procedures including complex valve repairs and coronary bypasses. Established the minimally invasive cardiac surgery program."
+      position: "Consultant General Surgeon",
+      institution: "Obafemi Awolowo University Teaching Hospitals Complex Ile-Ife",
+      period: "2015 - 2018",
+      description: "Performed over 2,000 general surgical procedures including emergency surgeries, elective operations, and minimally invasive procedures."
     },
     {
-      position: "Cardiac Surgery Fellow",
-      institution: "Johns Hopkins Hospital",
+      position: "Senior Registrar",
+      institution: "University College Hospital Ibadan",
+      period: "2012 - 2015",
+      description: "Advanced surgical training with focus on general surgery, trauma surgery, and emergency surgical procedures."
+    },
+    {
+      position: "Registrar",
+      institution: "Lagos University Teaching Hospital",
       period: "2009 - 2012",
-      description: "Specialized training in adult cardiac surgery with focus on valve repair and coronary artery disease treatment."
-    },
-    {
-      position: "General Surgery Resident",
-      institution: "Massachusetts General Hospital",
-      period: "2004 - 2009",
-      description: "Comprehensive surgical training with rotations in trauma, vascular, and cardiac surgery departments."
+      description: "Comprehensive surgical training with rotations in various surgical specialties including general surgery, orthopedics, and plastic surgery."
     }
   ];
 
@@ -89,41 +89,42 @@ const About = () => {
           <div className="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <User className="w-16 h-16 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Dr. Sarah Mitchell, MD, FACS</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Dr. Funmilola Wuraola, MBBS, FWACS, FMPCS</h1>
           <p className="text-xl text-gray-600 mb-6">
-            Board-Certified Cardiovascular Surgeon
+            Senior Consultant General Surgeon
           </p>
           <div className="flex justify-center space-x-4">
-            <Badge variant="secondary">15+ Years Experience</Badge>
-            <Badge variant="secondary">2,500+ Surgeries</Badge>
-            <Badge variant="secondary">50+ Publications</Badge>
+            <Badge variant="secondary">12+ Years Experience</Badge>
+            <Badge variant="secondary">2,000+ Surgeries</Badge>
+            <Badge variant="secondary">30+ Publications</Badge>
           </div>
         </div>
 
         {/* Bio Section */}
         <Card className="mb-12">
           <CardHeader>
-            <CardTitle className="text-2xl">About Dr. Mitchell</CardTitle>
+            <CardTitle className="text-2xl">About Dr. Wuraola</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="prose max-w-none text-gray-700">
               <p className="mb-4">
-                Dr. Sarah Mitchell is a renowned cardiovascular surgeon with over 15 years of experience 
-                in treating complex heart conditions. She graduated summa cum laude from Harvard Medical 
-                School and completed her residency at Massachusetts General Hospital, followed by a 
-                fellowship in cardiovascular surgery at Johns Hopkins Hospital.
+                Dr. Funmilola Wuraola is a distinguished general surgeon with over 12 years of experience 
+                in treating complex surgical conditions. She graduated with distinction from the College of 
+                Medicine, University of Lagos, and completed her residency training through the National 
+                Postgraduate Medical College of Nigeria and West African College of Surgeons.
               </p>
               <p className="mb-4">
-                Dr. Mitchell's expertise lies in minimally invasive cardiac surgery, robotic-assisted 
-                procedures, and complex valve repairs. She has pioneered several innovative surgical 
-                techniques that have been adopted worldwide, significantly improving patient outcomes 
-                and reducing recovery times.
+                Dr. Wuraola's expertise lies in general surgery, emergency surgical procedures, and 
+                minimally invasive surgical techniques. She has pioneered several innovative surgical 
+                approaches that have been adopted across Nigeria, significantly improving patient outcomes 
+                and reducing recovery times in resource-limited settings.
               </p>
               <p>
-                Beyond her surgical practice, Dr. Mitchell is actively involved in medical research 
-                and education. She has published over 50 peer-reviewed articles in leading medical 
-                journals and regularly speaks at international conferences. Her commitment to advancing 
-                the field of cardiovascular surgery has earned her numerous awards and recognitions.
+                Beyond her surgical practice at Obafemi Awolowo University Teaching Hospitals Complex, 
+                Dr. Wuraola is actively involved in medical research and education. She has published 
+                over 30 peer-reviewed articles in leading medical journals and regularly speaks at 
+                national and international conferences. Her commitment to advancing surgical care in 
+                Nigeria has earned her numerous awards and recognitions.
               </p>
             </div>
           </CardContent>
