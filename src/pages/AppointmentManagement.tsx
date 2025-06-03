@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Calendar, Clock, Plus, Edit, Trash2, LogOut, Eye, Settings } from "lucide-react";
 
 interface TimeSlot {
@@ -20,6 +21,9 @@ interface TimeSlot {
   patientEmail?: string;
   patientPhone?: string;
   appointmentNotes?: string;
+  medicalHistory?: string;
+  currentMedications?: string;
+  reasonForVisit?: string;
 }
 
 const AppointmentManagement = () => {
@@ -33,7 +37,10 @@ const AppointmentManagement = () => {
       patientName: "John Doe",
       patientEmail: "john@email.com",
       patientPhone: "+234 801 234 5678",
-      appointmentNotes: "Follow-up consultation for previous surgery"
+      appointmentNotes: "Follow-up consultation for previous surgery",
+      medicalHistory: "Previous appendectomy in 2022, hypertension",
+      currentMedications: "Lisinopril 10mg daily, Aspirin 81mg daily",
+      reasonForVisit: "Post-operative follow-up and general check-up"
     },
     {
       id: "2",
@@ -59,6 +66,14 @@ const AppointmentManagement = () => {
   });
   const [editingSlot, setEditingSlot] = useState<TimeSlot | null>(null);
   const [viewingSlot, setViewingSlot] = useState<TimeSlot | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  // Calculate pagination
+  const totalPages = Math.ceil(timeSlots.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentSlots = timeSlots.slice(startIndex, endIndex);
 
   const handleAddSlot = () => {
     if (newSlot.date && newSlot.time) {
@@ -89,6 +104,11 @@ const AppointmentManagement = () => {
 
   const handleDeleteSlot = (id: string) => {
     setTimeSlots(timeSlots.filter(slot => slot.id !== id));
+    // Adjust current page if necessary
+    const newTotalPages = Math.ceil((timeSlots.length - 1) / itemsPerPage);
+    if (currentPage > newTotalPages && newTotalPages > 0) {
+      setCurrentPage(newTotalPages);
+    }
   };
 
   const handleLogout = () => {
@@ -247,7 +267,7 @@ const AppointmentManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {timeSlots.map((slot) => (
+                {currentSlots.map((slot) => (
                   <TableRow key={slot.id}>
                     <TableCell>{new Date(slot.date).toLocaleDateString()}</TableCell>
                     <TableCell className="flex items-center space-x-1">
@@ -277,7 +297,7 @@ const AppointmentManagement = () => {
                                 <Eye className="w-4 h-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent className="max-w-2xl">
                               <DialogHeader>
                                 <DialogTitle>Appointment Details</DialogTitle>
                                 <DialogDescription>
@@ -285,7 +305,7 @@ const AppointmentManagement = () => {
                                 </DialogDescription>
                               </DialogHeader>
                               {viewingSlot && (
-                                <div className="space-y-4">
+                                <div className="space-y-6">
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
                                       <Label className="text-sm font-medium">Date</Label>
@@ -312,12 +332,39 @@ const AppointmentManagement = () => {
                                       <p className="text-sm">{viewingSlot.patientPhone}</p>
                                     </div>
                                   </div>
-                                  {viewingSlot.appointmentNotes && (
-                                    <div>
-                                      <Label className="text-sm font-medium">Notes</Label>
-                                      <p className="text-sm">{viewingSlot.appointmentNotes}</p>
-                                    </div>
-                                  )}
+                                  
+                                  {/* Medical Information Section */}
+                                  <div className="space-y-4 border-t pt-4">
+                                    <h3 className="text-lg font-semibold">Medical Information</h3>
+                                    
+                                    {viewingSlot.reasonForVisit && (
+                                      <div>
+                                        <Label className="text-sm font-medium">Reason for Visit</Label>
+                                        <p className="text-sm text-gray-700 mt-1">{viewingSlot.reasonForVisit}</p>
+                                      </div>
+                                    )}
+                                    
+                                    {viewingSlot.medicalHistory && (
+                                      <div>
+                                        <Label className="text-sm font-medium">Medical History</Label>
+                                        <p className="text-sm text-gray-700 mt-1">{viewingSlot.medicalHistory}</p>
+                                      </div>
+                                    )}
+                                    
+                                    {viewingSlot.currentMedications && (
+                                      <div>
+                                        <Label className="text-sm font-medium">Current Medications</Label>
+                                        <p className="text-sm text-gray-700 mt-1">{viewingSlot.currentMedications}</p>
+                                      </div>
+                                    )}
+                                    
+                                    {viewingSlot.appointmentNotes && (
+                                      <div>
+                                        <Label className="text-sm font-medium">Appointment Notes</Label>
+                                        <p className="text-sm text-gray-700 mt-1">{viewingSlot.appointmentNotes}</p>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                             </DialogContent>
@@ -401,6 +448,41 @@ const AppointmentManagement = () => {
                 ))}
               </TableBody>
             </Table>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

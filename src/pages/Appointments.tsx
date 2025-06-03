@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -90,8 +89,8 @@ const Appointments = () => {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Schedule an Appointment</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Take the first step towards better cardiovascular health. Schedule a consultation 
-            with Dr. Mitchell to discuss your concerns and treatment options.
+            Take the first step towards better health. Schedule a consultation 
+            with Dr. Funmilola Wuraola to discuss your concerns and treatment options.
           </p>
         </div>
 
@@ -164,7 +163,7 @@ const Appointments = () => {
                           id="insuranceProvider"
                           value={formData.insuranceProvider}
                           onChange={(e) => handleInputChange("insuranceProvider", e.target.value)}
-                          placeholder="e.g., Blue Cross Blue Shield"
+                          placeholder="e.g., NHIS, HMO"
                         />
                       </div>
                     </div>
@@ -302,21 +301,21 @@ const Appointments = () => {
                 <div className="flex items-start">
                   <MapPin className="w-5 h-5 mr-2 mt-1 text-blue-600" />
                   <div>
-                    <p className="font-medium">Metropolitan Medical Center</p>
-                    <p className="text-gray-600">123 Medical Plaza Drive<br />Suite 200<br />New York, NY 10001</p>
+                    <p className="font-medium">Obafemi Awolowo University Teaching Hospitals Complex</p>
+                    <p className="text-gray-600">Ile-Ife<br />Osun State<br />Nigeria</p>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <Phone className="w-5 h-5 mr-2 text-blue-600" />
                   <div>
-                    <p className="font-medium">(555) 123-4567</p>
+                    <p className="font-medium">+234 (036) 230-0000</p>
                     <p className="text-sm text-gray-600">Mon-Fri: 8:00 AM - 5:00 PM</p>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <Mail className="w-5 h-5 mr-2 text-blue-600" />
                   <div>
-                    <p className="font-medium">appointments@drmitchell.com</p>
+                    <p className="font-medium">appointments@oauthc.com</p>
                     <p className="text-sm text-gray-600">24-hour response time</p>
                   </div>
                 </div>
@@ -372,8 +371,8 @@ const Appointments = () => {
                   <div>
                     <h4 className="font-medium text-gray-900">Please Bring</h4>
                     <ul className="text-sm text-gray-600 mt-1">
-                      <li>• Insurance card</li>
-                      <li>• Photo ID</li>
+                      <li>• Valid ID card</li>
+                      <li>• Insurance card (if applicable)</li>
                       <li>• Previous medical records</li>
                       <li>• Current medication list</li>
                     </ul>
