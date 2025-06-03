@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Calendar, Clock, Plus, Edit, Trash2, LogOut, Eye, Settings } from "lucide-react";
+import { Calendar, Clock, Plus, Edit, Trash2, LogOut, Eye, Settings, Filter, X } from "lucide-react";
 
 interface TimeSlot {
   id: string;
@@ -68,12 +67,30 @@ const AppointmentManagement = () => {
   const [viewingSlot, setViewingSlot] = useState<TimeSlot | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-
+  
+  const [filterDate, setFilterDate] = useState("");
+  
   // Calculate pagination
-  const totalPages = Math.ceil(timeSlots.length / itemsPerPage);
+  const filteredTimeSlots = filterDate 
+    ? timeSlots.filter(slot => slot.date === filterDate)
+    : timeSlots;
+
+  // Calculate pagination based on filtered results
+  const totalPages = Math.ceil(filteredTimeSlots.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentSlots = timeSlots.slice(startIndex, endIndex);
+  const currentSlots = filteredTimeSlots.slice(startIndex, endIndex);
+
+  // Reset to first page when filter changes
+  const handleDateFilter = (date: string) => {
+    setFilterDate(date);
+    setCurrentPage(1);
+  };
+
+  const clearFilter = () => {
+    setFilterDate("");
+    setCurrentPage(1);
+  };
 
   const handleAddSlot = () => {
     if (newSlot.date && newSlot.time) {
@@ -255,6 +272,35 @@ const AppointmentManagement = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Date Filter */}
+            <div className="mb-6 flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Filter className="w-4 h-4" />
+                <Label htmlFor="filter-date">Filter by Date:</Label>
+              </div>
+              <Input
+                id="filter-date"
+                type="date"
+                value={filterDate}
+                onChange={(e) => handleDateFilter(e.target.value)}
+                className="w-auto"
+              />
+              {filterDate && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearFilter}
+                  className="flex items-center space-x-1"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Clear</span>
+                </Button>
+              )}
+              <div className="text-sm text-gray-600">
+                Showing {filteredTimeSlots.length} of {timeSlots.length} slots
+              </div>
+            </div>
+
             <Table>
               <TableHeader>
                 <TableRow>
@@ -267,185 +313,193 @@ const AppointmentManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentSlots.map((slot) => (
-                  <TableRow key={slot.id}>
-                    <TableCell>{new Date(slot.date).toLocaleDateString()}</TableCell>
-                    <TableCell className="flex items-center space-x-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{slot.time}</span>
+                {currentSlots.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                      {filterDate ? "No appointments found for the selected date" : "No time slots available"}
                     </TableCell>
-                    <TableCell>{formatDuration(slot.duration)}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={slot.isAvailable ? "default" : "secondary"}
-                        className={slot.isAvailable ? "bg-green-500" : "bg-red-500"}
-                      >
-                        {slot.isAvailable ? "Available" : "Booked"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{slot.patientName || "-"}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        {!slot.isAvailable && (
+                  </TableRow>
+                ) : (
+                  currentSlots.map((slot) => (
+                    <TableRow key={slot.id}>
+                      <TableCell>{new Date(slot.date).toLocaleDateString()}</TableCell>
+                      <TableCell className="flex items-center space-x-1">
+                        <Clock className="w-4 h-4" />
+                        <span>{slot.time}</span>
+                      </TableCell>
+                      <TableCell>{formatDuration(slot.duration)}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={slot.isAvailable ? "default" : "secondary"}
+                          className={slot.isAvailable ? "bg-green-500" : "bg-red-500"}
+                        >
+                          {slot.isAvailable ? "Available" : "Booked"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{slot.patientName || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          {!slot.isAvailable && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => setViewingSlot(slot)}
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                  <DialogTitle>Appointment Details</DialogTitle>
+                                  <DialogDescription>
+                                    View appointment information
+                                  </DialogDescription>
+                                </DialogHeader>
+                                {viewingSlot && (
+                                  <div className="space-y-6">
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <Label className="text-sm font-medium">Date</Label>
+                                        <p className="text-sm">{new Date(viewingSlot.date).toLocaleDateString()}</p>
+                                      </div>
+                                      <div>
+                                        <Label className="text-sm font-medium">Time</Label>
+                                        <p className="text-sm">{viewingSlot.time}</p>
+                                      </div>
+                                      <div>
+                                        <Label className="text-sm font-medium">Duration</Label>
+                                        <p className="text-sm">{formatDuration(viewingSlot.duration)}</p>
+                                      </div>
+                                      <div>
+                                        <Label className="text-sm font-medium">Patient Name</Label>
+                                        <p className="text-sm">{viewingSlot.patientName}</p>
+                                      </div>
+                                      <div>
+                                        <Label className="text-sm font-medium">Email</Label>
+                                        <p className="text-sm">{viewingSlot.patientEmail}</p>
+                                      </div>
+                                      <div>
+                                        <Label className="text-sm font-medium">Phone</Label>
+                                        <p className="text-sm">{viewingSlot.patientPhone}</p>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Medical Information Section */}
+                                    <div className="space-y-4 border-t pt-4">
+                                      <h3 className="text-lg font-semibold">Medical Information</h3>
+                                      
+                                      {viewingSlot.reasonForVisit && (
+                                        <div>
+                                          <Label className="text-sm font-medium">Reason for Visit</Label>
+                                          <p className="text-sm text-gray-700 mt-1">{viewingSlot.reasonForVisit}</p>
+                                        </div>
+                                      )}
+                                      
+                                      {viewingSlot.medicalHistory && (
+                                        <div>
+                                          <Label className="text-sm font-medium">Medical History</Label>
+                                          <p className="text-sm text-gray-700 mt-1">{viewingSlot.medicalHistory}</p>
+                                        </div>
+                                      )}
+                                      
+                                      {viewingSlot.currentMedications && (
+                                        <div>
+                                          <Label className="text-sm font-medium">Current Medications</Label>
+                                          <p className="text-sm text-gray-700 mt-1">{viewingSlot.currentMedications}</p>
+                                        </div>
+                                      )}
+                                      
+                                      {viewingSlot.appointmentNotes && (
+                                        <div>
+                                          <Label className="text-sm font-medium">Appointment Notes</Label>
+                                          <p className="text-sm text-gray-700 mt-1">{viewingSlot.appointmentNotes}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </DialogContent>
+                            </Dialog>
+                          )}
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button 
                                 size="sm" 
                                 variant="outline"
-                                onClick={() => setViewingSlot(slot)}
+                                onClick={() => handleEditSlot(slot)}
                               >
-                                <Eye className="w-4 h-4" />
+                                <Edit className="w-4 h-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-2xl">
+                            <DialogContent>
                               <DialogHeader>
-                                <DialogTitle>Appointment Details</DialogTitle>
+                                <DialogTitle>Edit Time Slot</DialogTitle>
                                 <DialogDescription>
-                                  View appointment information
+                                  Modify the time slot details
                                 </DialogDescription>
                               </DialogHeader>
-                              {viewingSlot && (
-                                <div className="space-y-6">
+                              {editingSlot && (
+                                <div className="space-y-4">
                                   <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                      <Label className="text-sm font-medium">Date</Label>
-                                      <p className="text-sm">{new Date(viewingSlot.date).toLocaleDateString()}</p>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-date">Date</Label>
+                                      <Input
+                                        id="edit-date"
+                                        type="date"
+                                        value={editingSlot.date}
+                                        onChange={(e) => setEditingSlot({ ...editingSlot, date: e.target.value })}
+                                      />
                                     </div>
-                                    <div>
-                                      <Label className="text-sm font-medium">Time</Label>
-                                      <p className="text-sm">{viewingSlot.time}</p>
-                                    </div>
-                                    <div>
-                                      <Label className="text-sm font-medium">Duration</Label>
-                                      <p className="text-sm">{formatDuration(viewingSlot.duration)}</p>
-                                    </div>
-                                    <div>
-                                      <Label className="text-sm font-medium">Patient Name</Label>
-                                      <p className="text-sm">{viewingSlot.patientName}</p>
-                                    </div>
-                                    <div>
-                                      <Label className="text-sm font-medium">Email</Label>
-                                      <p className="text-sm">{viewingSlot.patientEmail}</p>
-                                    </div>
-                                    <div>
-                                      <Label className="text-sm font-medium">Phone</Label>
-                                      <p className="text-sm">{viewingSlot.patientPhone}</p>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-time">Time</Label>
+                                      <Input
+                                        id="edit-time"
+                                        type="time"
+                                        value={editingSlot.time}
+                                        onChange={(e) => setEditingSlot({ ...editingSlot, time: e.target.value })}
+                                      />
                                     </div>
                                   </div>
-                                  
-                                  {/* Medical Information Section */}
-                                  <div className="space-y-4 border-t pt-4">
-                                    <h3 className="text-lg font-semibold">Medical Information</h3>
-                                    
-                                    {viewingSlot.reasonForVisit && (
-                                      <div>
-                                        <Label className="text-sm font-medium">Reason for Visit</Label>
-                                        <p className="text-sm text-gray-700 mt-1">{viewingSlot.reasonForVisit}</p>
-                                      </div>
-                                    )}
-                                    
-                                    {viewingSlot.medicalHistory && (
-                                      <div>
-                                        <Label className="text-sm font-medium">Medical History</Label>
-                                        <p className="text-sm text-gray-700 mt-1">{viewingSlot.medicalHistory}</p>
-                                      </div>
-                                    )}
-                                    
-                                    {viewingSlot.currentMedications && (
-                                      <div>
-                                        <Label className="text-sm font-medium">Current Medications</Label>
-                                        <p className="text-sm text-gray-700 mt-1">{viewingSlot.currentMedications}</p>
-                                      </div>
-                                    )}
-                                    
-                                    {viewingSlot.appointmentNotes && (
-                                      <div>
-                                        <Label className="text-sm font-medium">Appointment Notes</Label>
-                                        <p className="text-sm text-gray-700 mt-1">{viewingSlot.appointmentNotes}</p>
-                                      </div>
-                                    )}
+                                  <div className="space-y-2">
+                                    <Label htmlFor="edit-duration">Duration</Label>
+                                    <Select 
+                                      value={editingSlot.duration.toString()} 
+                                      onValueChange={(value) => setEditingSlot({ ...editingSlot, duration: parseInt(value) })}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="15">15 minutes</SelectItem>
+                                        <SelectItem value="30">30 minutes</SelectItem>
+                                        <SelectItem value="45">45 minutes</SelectItem>
+                                        <SelectItem value="60">1 hour</SelectItem>
+                                        <SelectItem value="90">1.5 hours</SelectItem>
+                                        <SelectItem value="120">2 hours</SelectItem>
+                                      </SelectContent>
+                                    </Select>
                                   </div>
+                                  <Button onClick={handleUpdateSlot} className="w-full">
+                                    Update Time Slot
+                                  </Button>
                                 </div>
                               )}
                             </DialogContent>
                           </Dialog>
-                        )}
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleEditSlot(slot)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Edit Time Slot</DialogTitle>
-                              <DialogDescription>
-                                Modify the time slot details
-                              </DialogDescription>
-                            </DialogHeader>
-                            {editingSlot && (
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="space-y-2">
-                                    <Label htmlFor="edit-date">Date</Label>
-                                    <Input
-                                      id="edit-date"
-                                      type="date"
-                                      value={editingSlot.date}
-                                      onChange={(e) => setEditingSlot({ ...editingSlot, date: e.target.value })}
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label htmlFor="edit-time">Time</Label>
-                                    <Input
-                                      id="edit-time"
-                                      type="time"
-                                      value={editingSlot.time}
-                                      onChange={(e) => setEditingSlot({ ...editingSlot, time: e.target.value })}
-                                    />
-                                  </div>
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-duration">Duration</Label>
-                                  <Select 
-                                    value={editingSlot.duration.toString()} 
-                                    onValueChange={(value) => setEditingSlot({ ...editingSlot, duration: parseInt(value) })}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="15">15 minutes</SelectItem>
-                                      <SelectItem value="30">30 minutes</SelectItem>
-                                      <SelectItem value="45">45 minutes</SelectItem>
-                                      <SelectItem value="60">1 hour</SelectItem>
-                                      <SelectItem value="90">1.5 hours</SelectItem>
-                                      <SelectItem value="120">2 hours</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <Button onClick={handleUpdateSlot} className="w-full">
-                                  Update Time Slot
-                                </Button>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleDeleteSlot(slot.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleDeleteSlot(slot.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
             
