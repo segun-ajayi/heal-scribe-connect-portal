@@ -17,7 +17,6 @@ interface AuthModalProps {
 }
 
 export const AuthModal = ({ isOpen, onClose, defaultTab = "patient" }: AuthModalProps) => {
-  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,7 +29,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = "patient" }: AuthModal
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent, userType: 'admin' | 'patient') => {
+  const handlePatientSubmit = async (e: React.FormEvent, isLogin: boolean) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -60,7 +59,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = "patient" }: AuthModal
           return;
         }
 
-        const { error } = await signUp(formData.email, formData.password, formData.fullName, userType);
+        const { error } = await signUp(formData.email, formData.password, formData.fullName, 'patient');
         if (error) {
           toast({
             title: "Registration Failed",
@@ -74,6 +73,36 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = "patient" }: AuthModal
           });
           onClose();
         }
+      }
+    } catch (error) {
+      toast({
+        title: "An error occurred",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const { error } = await signIn(formData.email, formData.password);
+      if (error) {
+        toast({
+          title: "Admin Login Failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Welcome back, Admin!",
+          description: "You have successfully logged in."
+        });
+        onClose();
       }
     } catch (error) {
       toast({
@@ -114,119 +143,213 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = "patient" }: AuthModal
             </TabsTrigger>
           </TabsList>
 
-          {(['patient', 'admin'] as const).map((userType) => (
-            <TabsContent key={userType} value={userType}>
-              <Card>
-                <CardHeader className="text-center">
-                  <CardTitle className="text-xl">
-                    {userType === 'admin' ? 'Admin' : 'Patient'} {isLogin ? 'Login' : 'Registration'}
-                  </CardTitle>
-                  <CardDescription>
-                    {isLogin 
-                      ? `Sign in to your ${userType} account`
-                      : `Create a new ${userType} account`
-                    }
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={(e) => handleSubmit(e, userType)} className="space-y-4">
-                    {!isLogin && (
-                      <div className="space-y-2">
-                        <Label htmlFor="fullName">Full Name</Label>
-                        <Input
-                          id="fullName"
-                          type="text"
-                          placeholder="Enter your full name"
-                          value={formData.fullName}
-                          onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                          required={!isLogin}
-                        />
-                      </div>
-                    )}
+          <TabsContent value="patient">
+            <PatientAuthTab 
+              formData={formData}
+              setFormData={setFormData}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+              isLoading={isLoading}
+              onSubmit={handlePatientSubmit}
+              resetForm={resetForm}
+            />
+          </TabsContent>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+          <TabsContent value="admin">
+            <Card>
+              <CardHeader className="text-center">
+                <CardTitle className="text-xl">Admin Login</CardTitle>
+                <CardDescription>
+                  Sign in to your admin account
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleAdminSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-email">Email</Label>
+                    <Input
+                      id="admin-email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-password">Password</Label>
+                    <div className="relative">
                       <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={formData.email}
-                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        id="admin-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        value={formData.password}
+                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                         required
                       />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4 text-gray-500" />
+                        ) : (
+                          <Eye className="w-4 h-4 text-gray-500" />
+                        )}
+                      </button>
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
-                      <div className="relative">
-                        <Input
-                          id="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Enter your password"
-                          value={formData.password}
-                          onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                          required
-                        />
-                        <button
-                          type="button"
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="w-4 h-4 text-gray-500" />
-                          ) : (
-                            <Eye className="w-4 h-4 text-gray-500" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {!isLogin && (
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm Password</Label>
-                        <Input
-                          id="confirmPassword"
-                          type="password"
-                          placeholder="Confirm your password"
-                          value={formData.confirmPassword}
-                          onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                          required={!isLogin}
-                        />
-                      </div>
-                    )}
-
-                    <Button
-                      type="submit"
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                      disabled={isLoading}
-                    >
-                      {isLoading 
-                        ? (isLogin ? "Signing in..." : "Creating account...") 
-                        : (isLogin ? "Sign In" : "Create Account")
-                      }
-                    </Button>
-                  </form>
-
-                  <div className="mt-4 text-center">
-                    <button
-                      onClick={() => {
-                        setIsLogin(!isLogin);
-                        resetForm();
-                      }}
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      {isLogin 
-                        ? "Don't have an account? Sign up" 
-                        : "Already have an account? Sign in"
-                      }
-                    </button>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          ))}
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Signing in..." : "Sign In"}
+                  </Button>
+                </form>
+
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() => {
+                      onClose();
+                      // Navigate to reset password - you might want to handle this differently
+                      window.location.href = '/reset-password';
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
+  );
+};
+
+const PatientAuthTab = ({ 
+  formData, 
+  setFormData, 
+  showPassword, 
+  setShowPassword, 
+  isLoading, 
+  onSubmit, 
+  resetForm 
+}: any) => {
+  const [isLogin, setIsLogin] = useState(true);
+
+  return (
+    <Card>
+      <CardHeader className="text-center">
+        <CardTitle className="text-xl">
+          Patient {isLogin ? 'Login' : 'Registration'}
+        </CardTitle>
+        <CardDescription>
+          {isLogin 
+            ? "Sign in to your patient account"
+            : "Create a new patient account"
+          }
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={(e) => onSubmit(e, isLogin)} className="space-y-4">
+          {!isLogin && (
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="Enter your full name"
+                value={formData.fullName}
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, fullName: e.target.value }))}
+                required={!isLogin}
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, password: e.target.value }))}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <Eye className="w-4 h-4 text-gray-500" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {!isLogin && (
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirm your password"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, confirmPassword: e.target.value }))}
+                required={!isLogin}
+              />
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700"
+            disabled={isLoading}
+          >
+            {isLoading 
+              ? (isLogin ? "Signing in..." : "Creating account...") 
+              : (isLogin ? "Sign In" : "Create Account")
+            }
+          </Button>
+        </form>
+
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => {
+              setIsLogin(!isLogin);
+              resetForm();
+            }}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            {isLogin 
+              ? "Don't have an account? Sign up" 
+              : "Already have an account? Sign in"
+            }
+          </button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

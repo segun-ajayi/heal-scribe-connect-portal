@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, User, LogOut, Settings, Calendar } from "lucide-react";
+import { Menu, X, User, LogOut, Settings, Calendar, Users, FileText, BookOpen, Clock, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -38,10 +38,12 @@ export const Header = () => {
 
   // Add admin navigation items
   const adminNavigation = userRole === 'admin' ? [
-    { name: "Admin Dashboard", href: "/admin/dashboard" },
-    { name: "Manage Posts", href: "/admin/blog" },
-    { name: "Manage Publications", href: "/admin/publications" },
-    { name: "Manage Appointments", href: "/admin/appointments" },
+    { name: "Admin Dashboard", href: "/admin/dashboard", icon: Settings },
+    { name: "Manage Appointments", href: "/admin/appointments", icon: Calendar },
+    { name: "Manage Blog", href: "/admin/blog", icon: FileText },
+    { name: "Manage Publications", href: "/admin/publications", icon: BookOpen },
+    { name: "Waiting List", href: "/admin/waiting-list", icon: Clock },
+    { name: "Manage Admins", href: "/admin/admins", icon: Shield },
   ] : [];
 
   const allNavigation = [...navigation, ...adminNavigation];
@@ -59,7 +61,7 @@ export const Header = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
-              {allNavigation.map((item) => (
+              {navigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
@@ -80,21 +82,59 @@ export const Header = () => {
                       {userRole === 'admin' ? 'Admin' : 'Patient'}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem asChild>
                       <Link to={userRole === 'admin' ? "/admin/dashboard" : "/patient/dashboard"}>
                         <Settings className="w-4 h-4 mr-2" />
                         Dashboard
                       </Link>
                     </DropdownMenuItem>
+                    
+                    {userRole === 'admin' && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/appointments">
+                            <Calendar className="w-4 h-4 mr-2" />
+                            Appointments
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/blog">
+                            <FileText className="w-4 h-4 mr-2" />
+                            Blog Management
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/publications">
+                            <BookOpen className="w-4 h-4 mr-2" />
+                            Publications
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/waiting-list">
+                            <Clock className="w-4 h-4 mr-2" />
+                            Waiting List
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/admins">
+                            <Shield className="w-4 h-4 mr-2" />
+                            Manage Admins
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    
                     {userRole === 'patient' && (
                       <DropdownMenuItem asChild>
-                        <Link to="/patient/appointments">
+                        <Link to="/patient/dashboard">
                           <Calendar className="w-4 h-4 mr-2" />
-                          My Appointments
+                          My Dashboard
                         </Link>
                       </DropdownMenuItem>
                     )}
+                    
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="w-4 h-4 mr-2" />
