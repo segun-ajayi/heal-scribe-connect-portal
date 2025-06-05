@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_permissions: {
+        Row: {
+          admin_id: string
+          created_at: string
+          id: string
+          permission: Database["public"]["Enums"]["permission_type"]
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          id?: string
+          permission: Database["public"]["Enums"]["permission_type"]
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          id?: string
+          permission?: Database["public"]["Enums"]["permission_type"]
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           created_at: string
@@ -20,6 +41,7 @@ export type Database = {
           status: string | null
           time: string
           updated_at: string
+          waiting_list_id: string | null
         }
         Insert: {
           created_at?: string
@@ -31,6 +53,7 @@ export type Database = {
           status?: string | null
           time: string
           updated_at?: string
+          waiting_list_id?: string | null
         }
         Update: {
           created_at?: string
@@ -42,8 +65,17 @@ export type Database = {
           status?: string | null
           time?: string
           updated_at?: string
+          waiting_list_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "appointments_waiting_list_id_fkey"
+            columns: ["waiting_list_id"]
+            isOneToOne: false
+            referencedRelation: "waiting_list"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       blog_posts: {
         Row: {
@@ -79,6 +111,42 @@ export type Database = {
           published_at?: string | null
           scheduled_for?: string | null
           status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      medical_records: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          patient_id: string
+          record_date: string
+          record_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          patient_id: string
+          record_date: string
+          record_type: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          patient_id?: string
+          record_date?: string
+          record_type?: string
           title?: string
           updated_at?: string
         }
@@ -171,11 +239,54 @@ export type Database = {
         }
         Relationships: []
       }
+      waiting_list: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string
+          priority: string | null
+          reason: string | null
+          requested_date: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          priority?: string | null
+          reason?: string | null
+          requested_date?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          priority?: string | null
+          reason?: string | null
+          requested_date?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      has_permission: {
+        Args: {
+          _user_id: string
+          _permission: Database["public"]["Enums"]["permission_type"]
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -185,7 +296,14 @@ export type Database = {
       }
     }
     Enums: {
-      user_role: "admin" | "patient"
+      permission_type:
+        | "blog_management"
+        | "publication_management"
+        | "appointment_management"
+        | "waiting_list_management"
+        | "admin_management"
+        | "dashboard_view"
+      user_role: "admin" | "patient" | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -301,7 +419,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_role: ["admin", "patient"],
+      permission_type: [
+        "blog_management",
+        "publication_management",
+        "appointment_management",
+        "waiting_list_management",
+        "admin_management",
+        "dashboard_view",
+      ],
+      user_role: ["admin", "patient", "super_admin"],
     },
   },
 } as const

@@ -1,58 +1,77 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Calendar, FileText, BookOpen, Clock, TrendingUp } from 'lucide-react';
+import { Users, Calendar, FileText, BookOpen, Clock, TrendingUp, Loader2 } from 'lucide-react';
+import { useAdminStats, useRecentAppointments, useRecentBlogPosts } from '@/hooks/useAdminData';
+import { useAuth } from '@/contexts/AuthContext';
+import { Badge } from '@/components/ui/badge';
 
 const AdminDashboard = () => {
-  const stats = [
+  const { user, userRole } = useAuth();
+  const { data: stats, isLoading: statsLoading } = useAdminStats();
+  const { data: recentAppointments = [], isLoading: appointmentsLoading } = useRecentAppointments();
+  const { data: recentPosts = [], isLoading: postsLoading } = useRecentBlogPosts();
+
+  const formatTime = (timeString: string) => {
+    return new Date(`1970-01-01T${timeString}`).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  if (userRole !== 'admin' && userRole !== 'super_admin') {
+    return (
+      <div className="container mx-auto py-8 px-4 text-center">
+        <p>Access denied. Admin privileges required.</p>
+      </div>
+    );
+  }
+
+  const statsData = [
     {
       title: 'Total Patients',
-      value: '1,234',
+      value: statsLoading ? '...' : stats?.totalPatients?.toString() || '0',
       change: '+12%',
       icon: Users,
       color: 'text-blue-600'
     },
     {
       title: 'Appointments Today',
-      value: '24',
+      value: statsLoading ? '...' : stats?.todayAppointments?.toString() || '0',
       change: '+5%',
       icon: Calendar,
       color: 'text-green-600'
     },
     {
       title: 'Blog Posts',
-      value: '45',
+      value: statsLoading ? '...' : stats?.blogPosts?.toString() || '0',
       change: '+8%',
       icon: FileText,
       color: 'text-purple-600'
     },
     {
       title: 'Publications',
-      value: '12',
+      value: statsLoading ? '...' : stats?.publications?.toString() || '0',
       change: '+2%',
       icon: BookOpen,
       color: 'text-orange-600'
     },
     {
       title: 'Waiting List',
-      value: '18',
+      value: statsLoading ? '...' : stats?.waitingList?.toString() || '0',
       change: '-3%',
       icon: Clock,
       color: 'text-red-600'
     }
-  ];
-
-  const recentAppointments = [
-    { id: 1, patient: 'John Smith', time: '10:00 AM', type: 'Consultation' },
-    { id: 2, patient: 'Sarah Johnson', time: '11:30 AM', type: 'Follow-up' },
-    { id: 3, patient: 'Mike Davis', time: '2:00 PM', type: 'Check-up' },
-    { id: 4, patient: 'Emily Brown', time: '3:30 PM', type: 'Consultation' }
-  ];
-
-  const recentPosts = [
-    { id: 1, title: 'Understanding Heart Health', status: 'Published', date: '2024-01-15' },
-    { id: 2, title: 'Managing Diabetes', status: 'Draft', date: '2024-01-14' },
-    { id: 3, title: 'Healthy Eating Tips', status: 'Scheduled', date: '2024-01-16' }
   ];
 
   return (
@@ -64,7 +83,7 @@ const AdminDashboard = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-        {stats.map((stat) => (
+        {statsData.map((stat) => (
           <Card key={stat.title}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -92,19 +111,35 @@ const AdminDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentAppointments.map((appointment) => (
-                <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-semibold">{appointment.patient}</p>
-                    <p className="text-sm text-gray-600">{appointment.type}</p>
+            {appointmentsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                Loading appointments...
+              </div>
+            ) : recentAppointments.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No appointments scheduled for today</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentAppointments.map((appointment) => (
+                  <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-semibold">
+                        {appointment.profiles?.full_name || 'Patient'}
+                      </p>
+                      <p className="text-sm text-gray-600">{appointment.reason || 'Appointment'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">{formatTime(appointment.time)}</p>
+                      <Badge variant="outline" className="mt-1">
+                        {appointment.status || 'scheduled'}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">{appointment.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -117,25 +152,36 @@ const AdminDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentPosts.map((post) => (
-                <div key={post.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-semibold">{post.title}</p>
-                    <p className="text-sm text-gray-600">{post.date}</p>
+            {postsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                Loading blog posts...
+              </div>
+            ) : recentPosts.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No blog posts available</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentPosts.map((post) => (
+                  <div key={post.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-semibold">{post.title}</p>
+                      <p className="text-sm text-gray-600">{formatDate(post.created_at)}</p>
+                    </div>
+                    <div className="text-right">
+                      <Badge className={`${
+                        post.status === 'published' ? 'bg-green-100 text-green-800' :
+                        post.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {post.status || 'draft'}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      post.status === 'Published' ? 'bg-green-100 text-green-800' :
-                      post.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {post.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
