@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  userRole: 'admin' | 'patient' | null;
+  userRole: 'admin' | 'super_admin' | 'patient' | null;
   signUp: (email: string, password: string, fullName: string, role?: 'admin' | 'patient') => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -27,7 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<'admin' | 'patient' | null>(null);
+  const [userRole, setUserRole] = useState<'admin' | 'super_admin' | 'patient' | null>(null);
 
   const fetchUserRole = async (userId: string) => {
     try {
@@ -42,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
       
-      return data?.role as 'admin' | 'patient';
+      return data?.role as 'admin' | 'super_admin' | 'patient';
     } catch (error) {
       console.error('Error fetching user role:', error);
       return null;
