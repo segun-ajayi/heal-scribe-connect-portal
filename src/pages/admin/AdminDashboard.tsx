@@ -5,6 +5,7 @@ import { Users, Calendar, FileText, BookOpen, Clock, TrendingUp, Loader2 } from 
 import { useAdminStats, useRecentAppointments, useRecentBlogPosts } from '@/hooks/useAdminData';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 
 const AdminDashboard = () => {
   const { user, userRole } = useAuth();
@@ -27,14 +28,6 @@ const AdminDashboard = () => {
       day: 'numeric'
     });
   };
-
-  if (userRole !== 'admin' && userRole !== 'super_admin') {
-    return (
-      <div className="container mx-auto py-8 px-4 text-center">
-        <p>Access denied. Admin privileges required.</p>
-      </div>
-    );
-  }
 
   const statsData = [
     {
@@ -75,115 +68,117 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-gray-600">Welcome to your medical practice management dashboard</p>
-      </div>
+    <AdminLayout>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard Overview</h1>
+          <p className="text-gray-600">Welcome to your medical practice management dashboard</p>
+        </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-        {statsData.map((stat) => (
-          <Card key={stat.title}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className={`text-sm ${stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                    {stat.change} from last month
-                  </p>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          {statsData.map((stat) => (
+            <Card key={stat.title}>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">{stat.title}</p>
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                    <p className={`text-sm ${stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
+                      {stat.change} from last month
+                    </p>
+                  </div>
+                  <stat.icon className={`w-8 h-8 ${stat.color}`} />
                 </div>
-                <stat.icon className={`w-8 h-8 ${stat.color}`} />
-              </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Today's Appointments */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Today's Appointments
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {appointmentsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                  Loading appointments...
+                </div>
+              ) : recentAppointments.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No appointments scheduled for today</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentAppointments.map((appointment) => (
+                    <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-semibold">Patient ID: {appointment.patient_id}</p>
+                        <p className="text-sm text-gray-600">{appointment.reason || 'Appointment'}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">{formatTime(appointment.time)}</p>
+                        <Badge variant="outline" className="mt-1">
+                          {appointment.status || 'scheduled'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
-        ))}
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Today's Appointments */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Today's Appointments
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {appointmentsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                Loading appointments...
-              </div>
-            ) : recentAppointments.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No appointments scheduled for today</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {recentAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Patient ID: {appointment.patient_id}</p>
-                      <p className="text-sm text-gray-600">{appointment.reason || 'Appointment'}</p>
+          {/* Recent Blog Posts */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Recent Blog Posts
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {postsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                  Loading blog posts...
+                </div>
+              ) : recentPosts.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No blog posts available</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentPosts.map((post) => (
+                    <div key={post.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-semibold">{post.title}</p>
+                        <p className="text-sm text-gray-600">{formatDate(post.created_at)}</p>
+                      </div>
+                      <div className="text-right">
+                        <Badge className={`${
+                          post.status === 'published' ? 'bg-green-100 text-green-800' :
+                          post.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {post.status || 'draft'}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{formatTime(appointment.time)}</p>
-                      <Badge variant="outline" className="mt-1">
-                        {appointment.status || 'scheduled'}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Recent Blog Posts */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Recent Blog Posts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {postsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                Loading blog posts...
-              </div>
-            ) : recentPosts.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No blog posts available</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {recentPosts.map((post) => (
-                  <div key={post.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">{post.title}</p>
-                      <p className="text-sm text-gray-600">{formatDate(post.created_at)}</p>
-                    </div>
-                    <div className="text-right">
-                      <Badge className={`${
-                        post.status === 'published' ? 'bg-green-100 text-green-800' :
-                        post.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {post.status || 'draft'}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 
