@@ -125,9 +125,7 @@ const AdminDashboard = () => {
                 {recentAppointments.map((appointment) => (
                   <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
-                      <p className="font-semibold">
-                        {appointment.profiles?.full_name || 'Patient'}
-                      </p>
+                      <p className="font-semibold">Patient ID: {appointment.patient_id}</p>
                       <p className="text-sm text-gray-600">{appointment.reason || 'Appointment'}</p>
                     </div>
                     <div className="text-right">

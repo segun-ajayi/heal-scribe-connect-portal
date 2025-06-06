@@ -46,7 +46,7 @@ export const useAdminStats = () => {
         waitingList: waitingList || 0
       };
     },
-    enabled: !!user && userRole === 'admin'
+    enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
   });
 };
 
@@ -60,10 +60,7 @@ export const useRecentAppointments = () => {
       
       const { data, error } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          profiles!appointments_patient_id_fkey(full_name)
-        `)
+        .select('*')
         .eq('date', today)
         .order('time', { ascending: true })
         .limit(10);
@@ -75,7 +72,7 @@ export const useRecentAppointments = () => {
       
       return data || [];
     },
-    enabled: !!user && userRole === 'admin'
+    enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
   });
 };
 
@@ -98,6 +95,6 @@ export const useRecentBlogPosts = () => {
       
       return data || [];
     },
-    enabled: !!user && userRole === 'admin'
+    enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
   });
 };
