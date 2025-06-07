@@ -92,8 +92,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     useEffect(() => {
-        fetchUser();
-    }, []);
+        const fetchData = async () => {
+            await fetchUser(); // ✅ Ensures the promise is resolved
+        };
+
+        fetchData();
+    }, [fetchUser]);
 
     return (
         <AuthContext.Provider value={{ user, loading, login, logout, fetchUser, register }}>
