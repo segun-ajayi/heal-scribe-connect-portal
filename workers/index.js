@@ -72,6 +72,11 @@ export default {
             return handlePatientProfile(request, env);
         }
 
+        // ✅ New Route: Fetch User Data
+        if (url.pathname === "/me") {
+            const response = await handleMe(request, env);
+            return addCorsHeaders(response);
+        }
 
         return addCorsHeaders(new Response("Not Found", { status: 404 }));
     }
@@ -210,4 +215,26 @@ async function handlePatientProfile(request, env) {
         .first();
 
     return new Response(JSON.stringify(profile), { status: 200, headers: { "Content-Type": "application/json" } });
+}
+
+async function handleMe(request, env) {
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
+    // Extract token and find user
+    const token = authHeader.replace("Bearer ", "");
+    const user = await env.auth.prepare("SELECT * FROM users WHERE token = ?")
+        .bind(token)
+        .first();
+
+    if (!user) {
+        return new Response(JSON.stringify({ error: "User Not Found" }), { status: 404 });
+    }
+
+    return new Response(JSON.stringify({ user }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+    });
 }

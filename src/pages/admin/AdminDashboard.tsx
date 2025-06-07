@@ -22,6 +22,8 @@ const AdminDashboard = () => {
     const token = localStorage.getItem('token');
     if (token) {
       if (fetchUser) {
+        console.log("Stored Token:", localStorage.getItem("token"));
+
         fetchUser();
       }
     } else {
