@@ -21,7 +21,7 @@ const AdminDashboard = () => {
   // ✅ Ensure authentication before loading dashboard
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log(token, 'segin');
+    console.log(token, 'segun2323');
     if (token) {
       fetchUser(); // Refresh session on load
     } else {
