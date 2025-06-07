@@ -29,8 +29,23 @@ const Login = () => {
     setError("");
 
     try {
-      await login(email, password);
-      navigate("/dashboard"); // or wherever after login
+      const response = await fetch("https://iyawo-website-worker.mortalerror.workers.dev/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      if (!data.success) throw new Error(data.message);
+
+      localStorage.setItem("token", data.token);
+
+      // ✅ Decode JWT and get role
+      const user = JSON.parse(atob(data.token.split(".")[1]));
+      const isAdmin = user.role === "admin";
+
+      // ✅ Redirect based on role
+      navigate(isAdmin ? "/admin/dashboard" : "/patient/dashboard");
     } catch (err: any) {
       setError(err.message || "Login failed");
     }
