@@ -27,6 +27,9 @@ const AdminDashboard = () => {
 
   }, [fetchUser, navigate]);
 
+  console.log("Auth Context Data:", useAuth());
+
+
   const { data: stats, isLoading: statsLoading, error: statsError } = useAdminStats();
   const { data: recentAppointments = [], isLoading: appointmentsLoading } = useRecentAppointments();
   const { data: recentPosts = [], isLoading: postsLoading } = useRecentBlogPosts();
