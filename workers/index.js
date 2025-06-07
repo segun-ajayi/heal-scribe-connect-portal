@@ -218,23 +218,34 @@ async function handlePatientProfile(request, env) {
 }
 
 async function handleMe(request, env) {
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    try {
+        const authHeader = request.headers.get("Authorization");
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            console.log("Missing or invalid token");
+            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+        }
+
+        const token = authHeader.replace("Bearer ", "");
+        const decoded = JSON.parse(atob(token.split(".")[1])); // ✅ Decode JWT to get email
+        console.log("Decoded Token:", decoded);
+
+        const user = await env.auth.prepare("SELECT * FROM users WHERE email = ?")
+            .bind(decoded.email)
+            .first();
+
+        console.log("Database User Lookup:", user);
+
+        if (!user) {
+            console.log("User Not Found");
+            return new Response(JSON.stringify({ error: "User Not Found" }), { status: 404 });
+        }
+
+        return new Response(JSON.stringify({ user }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+        });
+    } catch (error) {
+        console.error("Worker Error:", error);
+        return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
     }
-
-    // Extract token and find user
-    const token = authHeader.replace("Bearer ", "");
-    const user = await env.auth.prepare("SELECT * FROM users WHERE token = ?")
-        .bind(token)
-        .first();
-
-    if (!user) {
-        return new Response(JSON.stringify({ error: "User Not Found" }), { status: 404 });
-    }
-
-    return new Response(JSON.stringify({ user }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" }
-    });
 }
