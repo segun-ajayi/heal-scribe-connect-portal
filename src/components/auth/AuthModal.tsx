@@ -64,6 +64,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = "patient" }: AuthModal
         // ✅ Decode JWT and get role
         const user = JSON.parse(atob(result.token.split(".")[1]));
         const isAdmin = user.role === "admin";
+        console.log(isAdmin, 'segun');
 
         // ✅ Redirect based on role
         window.location.href = isAdmin ? "/admin/dashboard" : "/patient/dashboard";
