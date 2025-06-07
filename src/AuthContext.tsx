@@ -1,4 +1,3 @@
-// src/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface User {
@@ -10,19 +9,22 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
-    loading: boolean;
-    login: (email: string, password: string) => Promise<void>;
-    logout: () => void;
+    session: any;
+    isLoading: boolean;
+    userRole: string | null;
     fetchUser: () => Promise<void>;
-    register: (email: string, password: string, name: string) => Promise<void>;
+    signIn: (email: string, password: string) => Promise<void>;
+    signOut: () => Promise<void>;
+    signUp: (email: string, password: string, name: string, role?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [session, setSession] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [userRole, setUserRole] = useState<string | null>(null);
 
     const fetchUser = async () => {
         try {
@@ -30,6 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (!token) {
                 console.log("No token found, setting user to null");
                 setUser(null);
+                setUserRole(null);
                 return;
             }
 
@@ -39,27 +42,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 credentials: "include",
             });
 
+            console.log("API Response Status:", res.status);
+
             const data = await res.json();
             console.log("Fetched User Data:", data);
 
             if (res.ok && data.user) {
                 setUser(data.user);
+                setUserRole(data.user.role);
             } else {
                 console.log("User data invalid, setting user to null");
                 setUser(null);
+                setUserRole(null);
             }
         } catch (err) {
             console.error("Failed to fetch user:", err);
             setUser(null);
+            setUserRole(null);
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
-    const login = async (email: string, password: string) => {
-        const res = await fetch("https://iyawo-website-worker.mortalerror.workers.dev/login", {
+    const signIn = async (email: string, password: string) => {
+        const res = await fetch("https://iyawo-website-worker.mortalerror.workers.dev/auth/login", {
             method: "POST",
-            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
         });
@@ -67,20 +74,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (!res.ok) throw new Error("Login failed");
 
         const data = await res.json();
-        localStorage.setItem("token", data.token); // ✅ Store token
-        await fetchUser(); // Fetch user after login
+        localStorage.setItem("token", data.token);
+        await fetchUser();
     };
 
-    const logout = () => {
+    const signOut = async () => {
         localStorage.removeItem("token");
         setUser(null);
+        setUserRole(null);
     };
 
-    const register = async (email: string, password: string, name: string) => {
-        const res = await fetch("https://iyawo-website-worker.mortalerror.workers.dev/register", {
+    const signUp = async (email: string, password: string, name: string, role = "patient") => {
+        const res = await fetch("https://iyawo-website-worker.mortalerror.workers.dev/auth/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password, name }),
+            body: JSON.stringify({ email, password, name, role }),
         });
 
         if (!res.ok) {
@@ -88,22 +96,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             throw new Error(errorData.message || "Registration failed");
         }
 
-        await login(email, password);
+        await signIn(email, password);
     };
 
     useEffect(() => {
-        const fetchData = async () => {
-            await fetchUser(); // ✅ Ensures the promise is resolved
-        };
-
-        fetchData();
-    }, [fetchUser]);
+        fetchUser();
+    }, []);
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, fetchUser, register }}>
+        <AuthContext.Provider value={{ user, session, isLoading, userRole, fetchUser, signIn, signOut, signUp }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
+};
