@@ -1,0 +1,7 @@
+name = "iyawo-website-worker"
+main = "workers/index.js"
+compatibility_date = "2025-06-07"
+
+d1_databases = [{binding = "auth", database_name = "auth-db", database_id = "0c755475-b380-4f9e-8a84-d6c3bc9c51bc"}]
+
+

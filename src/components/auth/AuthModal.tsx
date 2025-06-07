@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, EyeOff, UserCheck, Users } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 interface AuthModalProps {
@@ -26,330 +24,154 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = "patient" }: AuthModal
     confirmPassword: ""
   });
 
-  const { signIn, signUp } = useAuth();
   const { toast } = useToast();
+
+  const authenticateUser = async (endpoint: string, payload: object) => {
+    try {
+      const response = await fetch(`https://iyawo-website-worker.mortalerror.workers.dev/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Authentication failed");
+
+      return data;
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return null;
+    }
+  };
 
   const handlePatientSubmit = async (e: React.FormEvent, isLogin: boolean) => {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
+    const endpoint = isLogin ? "auth/login" : "auth/signup";
+    const payload = isLogin
+        ? { email: formData.email, password: formData.password }
+        : { email: formData.email, password: formData.password, fullName: formData.fullName };
+
+    const result = await authenticateUser(endpoint, payload);
+    if (result) {
+      toast({ title: "Success!", description: isLogin ? "Logged in!" : "Account created!" });
+
       if (isLogin) {
-        const { error } = await signIn(formData.email, formData.password);
-        if (error) {
-          toast({
-            title: "Login Failed",
-            description: error.message,
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Welcome back!",
-            description: "You have successfully logged in."
-          });
-          onClose();
-        }
-      } else {
-        if (formData.password !== formData.confirmPassword) {
-          toast({
-            title: "Password Mismatch",
-            description: "Passwords do not match",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        const { error } = await signUp(formData.email, formData.password, formData.fullName, 'patient');
-        if (error) {
-          toast({
-            title: "Registration Failed",
-            description: error.message,
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Registration Successful",
-            description: "Please check your email to verify your account."
-          });
-          onClose();
-        }
+        localStorage.setItem("token", result.token); // ✅ Store JWT token
+        window.location.href = "/dashboard"; // Redirect after login
       }
-    } catch (error) {
-      toast({
-        title: "An error occurred",
-        description: "Please try again later",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+
+      onClose();
     }
+
+    setIsLoading(false);
   };
 
-  const handleAdminSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { error } = await signIn(formData.email, formData.password);
-      if (error) {
-        toast({
-          title: "Admin Login Failed",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Welcome back, Admin!",
-          description: "You have successfully logged in."
-        });
-        onClose();
-      }
-    } catch (error) {
-      toast({
-        title: "An error occurred",
-        description: "Please try again later",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // ✅ Clear stored JWT
+    window.location.href = "/login"; // Redirect to login
   };
 
-  const resetForm = () => {
-    setFormData({
-      email: "",
-      password: "",
-      fullName: "",
-      confirmPassword: ""
+  const fetchProtectedData = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Not authenticated!");
+      return;
+    }
+
+    const response = await fetch("https://iyawo-website-worker.mortalerror.workers.dev/auth/protected", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
     });
+
+    const data = await response.json();
+    console.log("Protected Data:", data);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Authentication</DialogTitle>
-        </DialogHeader>
-        
-        <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="patient" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Patient
-            </TabsTrigger>
-            <TabsTrigger value="admin" className="flex items-center gap-2">
-              <UserCheck className="w-4 h-4" />
-              Admin
-            </TabsTrigger>
-          </TabsList>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Authentication</DialogTitle>
+          </DialogHeader>
 
-          <TabsContent value="patient">
-            <PatientAuthTab 
-              formData={formData}
-              setFormData={setFormData}
-              showPassword={showPassword}
-              setShowPassword={setShowPassword}
-              isLoading={isLoading}
-              onSubmit={handlePatientSubmit}
-              resetForm={resetForm}
-            />
-          </TabsContent>
+          <Tabs defaultValue={defaultTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="patient" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Patient
+              </TabsTrigger>
+              <TabsTrigger value="admin" className="flex items-center gap-2">
+                <UserCheck className="w-4 h-4" />
+                Admin
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="admin">
-            <Card>
-              <CardHeader className="text-center">
-                <CardTitle className="text-xl">Admin Login</CardTitle>
-                <CardDescription>
-                  Sign in to your admin account
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleAdminSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="admin-email">Email</Label>
+            <TabsContent value="patient">
+              <Card>
+                <CardHeader className="text-center">
+                  <CardTitle className="text-xl">Patient Login / Sign-up</CardTitle>
+                  <CardDescription>Manage your patient account</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={(e) => handlePatientSubmit(e, true)} className="space-y-4">
+                    <Label>Email</Label>
                     <Input
-                      id="admin-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={formData.email}
-                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="admin-password">Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="admin-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        value={formData.password}
-                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         required
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4 text-gray-500" />
-                        ) : (
-                          <Eye className="w-4 h-4 text-gray-500" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
+                    />
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Signing in..." : "Sign In"}
-                  </Button>
-                </form>
+                    <Label>Password</Label>
+                    <Input
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        required
+                    />
+                    <Button type="submit" disabled={isLoading}>
+                      {isLoading ? "Processing..." : "Login"}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={() => {
-                      onClose();
-                      // Navigate to reset password - you might want to handle this differently
-                      window.location.href = '/reset-password';
-                    }}
-                    className="text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    Forgot your password?
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
-  );
-};
+            <TabsContent value="admin">
+              <Card>
+                <CardHeader className="text-center">
+                  <CardTitle className="text-xl">Admin Login</CardTitle>
+                  <CardDescription>Sign in to manage the system</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={(e) => handlePatientSubmit(e, true)} className="space-y-4">
+                    <Label>Email</Label>
+                    <Input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        required
+                    />
 
-const PatientAuthTab = ({ 
-  formData, 
-  setFormData, 
-  showPassword, 
-  setShowPassword, 
-  isLoading, 
-  onSubmit, 
-  resetForm 
-}: any) => {
-  const [isLogin, setIsLogin] = useState(true);
-
-  return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-xl">
-          Patient {isLogin ? 'Login' : 'Registration'}
-        </CardTitle>
-        <CardDescription>
-          {isLogin 
-            ? "Sign in to your patient account"
-            : "Create a new patient account"
-          }
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={(e) => onSubmit(e, isLogin)} className="space-y-4">
-          {!isLogin && (
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="Enter your full name"
-                value={formData.fullName}
-                onChange={(e) => setFormData((prev: any) => ({ ...prev, fullName: e.target.value }))}
-                required={!isLogin}
-              />
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={(e) => setFormData((prev: any) => ({ ...prev, password: e.target.value }))}
-                required
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4 text-gray-500" />
-                ) : (
-                  <Eye className="w-4 h-4 text-gray-500" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {!isLogin && (
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData((prev: any) => ({ ...prev, confirmPassword: e.target.value }))}
-                required={!isLogin}
-              />
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700"
-            disabled={isLoading}
-          >
-            {isLoading 
-              ? (isLogin ? "Signing in..." : "Creating account...") 
-              : (isLogin ? "Sign In" : "Create Account")
-            }
-          </Button>
-        </form>
-
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              resetForm();
-            }}
-            className="text-sm text-blue-600 hover:text-blue-800"
-          >
-            {isLogin 
-              ? "Don't have an account? Sign up" 
-              : "Already have an account? Sign in"
-            }
-          </button>
-        </div>
-      </CardContent>
-    </Card>
+                    <Label>Password</Label>
+                    <Input
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        required
+                    />
+                    <Button type="submit" disabled={isLoading}>
+                      {isLoading ? "Processing..." : "Login"}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
   );
 };
