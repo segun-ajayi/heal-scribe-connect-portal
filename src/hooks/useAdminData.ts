@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export const useAdminStats = () => {
   const { user, userRole } = useAuth();
 
+
   return useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {

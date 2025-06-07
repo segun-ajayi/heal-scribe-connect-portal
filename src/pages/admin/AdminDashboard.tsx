@@ -8,8 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 
 const AdminDashboard = () => {
+  const authData = useAuth();
+  console.log("Auth Context Data:", authData);
 
-  const { user, loading, fetchUser } = useAuth() ?? {};
+
+  const { user, loading, fetchUser } = useAuth();
 
   const { data: stats, isLoading: statsLoading } = useAdminStats();
   const { data: recentAppointments = [], isLoading: appointmentsLoading } = useRecentAppointments();
@@ -20,10 +23,12 @@ const AdminDashboard = () => {
   // ✅ Ensure authentication before loading dashboard
   useEffect(() => {
     const token = localStorage.getItem('token');
+    console.log("Checking for token...");
+
     if (token) {
+      console.log("Token found, calling fetchUser...");
       if (fetchUser) {
         console.log("Stored Token:", localStorage.getItem("token"));
-
         fetchUser();
       }
     } else {
@@ -31,6 +36,7 @@ const AdminDashboard = () => {
       navigate('/login');
     }
   }, [fetchUser, navigate]);
+
   if (loading) {
     return <p>Loading...</p>; // Prevent UI flash before authentication check
   }
