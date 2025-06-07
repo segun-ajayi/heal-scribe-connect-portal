@@ -29,7 +29,7 @@ const AdminDashboard = () => {
       navigate('/login');
     }
   }, [fetchUser, navigate]);
-
+  console.log('segun');
   if (loading) {
     return <p>Loading...</p>; // Prevent UI flash before authentication check
   }
