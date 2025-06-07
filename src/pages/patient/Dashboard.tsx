@@ -11,7 +11,6 @@ import { Link } from "react-router-dom";
 import { usePatientAppointments, usePatientMedicalRecords, usePatientProfile } from "@/hooks/usePatientData";
 
 const PatientDashboard = () => {
-  // @ts-ignore
   const { user, loading, fetchUser } = useAuth();
   // Fetch patient data from Cloudflare Worker API
   const { data: appointments = [], isLoading: appointmentsLoading } = usePatientAppointments();
@@ -24,7 +23,9 @@ const PatientDashboard = () => {
     const token = localStorage.getItem("token");
 
     if (token) {
-      fetchUser(); // Refresh session on load
+      if (fetchUser) {
+        fetchUser();
+      }
     } else {
       console.log("No token found, redirecting to login...");
       navigate("/login");
