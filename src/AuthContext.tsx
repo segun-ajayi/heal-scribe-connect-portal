@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setLoading(false);
             return;
         }
-
+        console.log('ajayi');
         try {
             const res = await fetch("https://iyawo-website-worker.mortalerror.workers.dev/me", {
                 method: "GET",
