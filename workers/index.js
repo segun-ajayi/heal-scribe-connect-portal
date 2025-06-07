@@ -37,16 +37,41 @@ export default {
             return new Response(null, { headers: corsHeaders });
         }
 
-        // ✅ Ensure all responses include CORS headers
+        // ✅ Authentication Routes
         if (url.pathname === "/auth/login") {
             const response = await handleLogin(request, env);
             return addCorsHeaders(response);
         }
-
         if (url.pathname === "/auth/protected") {
             const response = await verifyToken(request, env);
             return addCorsHeaders(response);
         }
+
+        // ✅ Admin Routes
+        if (url.pathname === "/admin/stats") {
+            const response = await handleAdminStats(request, env);
+            return addCorsHeaders(response);
+        }
+        if (url.pathname === "/admin/appointments") {
+            const response = await handleRecentAppointments(request, env);
+            return addCorsHeaders(response);
+        }
+        if (url.pathname === "/admin/blog-posts") {
+            const response = await handleRecentBlogPosts(request, env);
+            return addCorsHeaders(response);
+        }
+
+        // ✅ Patient Routes
+        if (url.pathname === "/patient/appointments") {
+            return handlePatientAppointments(request, env);
+        }
+        if (url.pathname === "/patient/medical-records") {
+            return handlePatientMedicalRecords(request, env);
+        }
+        if (url.pathname === "/patient/profile") {
+            return handlePatientProfile(request, env);
+        }
+
 
         return addCorsHeaders(new Response("Not Found", { status: 404 }));
     }
@@ -79,7 +104,11 @@ async function handleLogin(request, env) {
             return new Response(JSON.stringify({ success: false, message: "Invalid credentials" }), { status: 401 });
         }
 
-        const token = await generateJwt({ email: requestData.email }, env.JWT_SECRET);
+        // ✅ Include role in JWT
+        const token = await generateJwt({ email: user.email, role: user.role }, env.JWT_SECRET);
+
+        console.log("Generated Token Payload:", JSON.parse(atob(token.split(".")[1]))); // ✅ Log decoded JWT payload
+
         return new Response(JSON.stringify({ success: true, token }), { status: 200 });
     } catch (error) {
         console.error("Login Error:", error);
@@ -126,3 +155,59 @@ async function verifyJwt(token, secret) {
     return isValid ? JSON.parse(atob(encodedPayload)) : null;
 }
 
+
+async function handleAdminStats(request, env) {
+    const totalPatients = await env.auth.prepare("SELECT COUNT(*) FROM users WHERE role = 'patient'").first();
+    const todayAppointments = await env.auth.prepare("SELECT COUNT(*) FROM appointments WHERE date = CURRENT_DATE").first();
+    const blogPosts = await env.auth.prepare("SELECT COUNT(*) FROM blog_posts").first();
+    const publications = await env.auth.prepare("SELECT COUNT(*) FROM publications").first();
+    const waitingList = await env.auth.prepare("SELECT COUNT(*) FROM waiting_list WHERE status = 'pending'").first();
+
+    return new Response(
+        JSON.stringify({
+            totalPatients: totalPatients?.count || 0,
+            todayAppointments: todayAppointments?.count || 0,
+            blogPosts: blogPosts?.count || 0,
+            publications: publications?.count || 0,
+            waitingList: waitingList?.count || 0,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+}
+
+async function handleRecentAppointments(request, env) {
+    const appointments = await env.auth.prepare("SELECT * FROM appointments WHERE date = CURRENT_DATE ORDER BY time ASC LIMIT 10").all();
+    return new Response(JSON.stringify(appointments), { status: 200, headers: { "Content-Type": "application/json" } });
+}
+
+async function handleRecentBlogPosts(request, env) {
+    const blogPosts = await env.auth.prepare("SELECT * FROM blog_posts ORDER BY created_at DESC LIMIT 5").all();
+    return new Response(JSON.stringify(blogPosts), { status: 200, headers: { "Content-Type": "application/json" } });
+}
+
+// ✅ Fetch patient appointments
+async function handlePatientAppointments(request, env) {
+    const appointments = await env.auth.prepare("SELECT * FROM appointments WHERE patient_id = ? ORDER BY date ASC")
+        .bind(request.headers.get("Authorization"))
+        .all();
+
+    return new Response(JSON.stringify(appointments), { status: 200, headers: { "Content-Type": "application/json" } });
+}
+
+// ✅ Fetch patient medical records
+async function handlePatientMedicalRecords(request, env) {
+    const records = await env.auth.prepare("SELECT * FROM medical_records WHERE patient_id = ? ORDER BY record_date DESC")
+        .bind(request.headers.get("Authorization"))
+        .all();
+
+    return new Response(JSON.stringify(records), { status: 200, headers: { "Content-Type": "application/json" } });
+}
+
+// ✅ Fetch patient profile
+async function handlePatientProfile(request, env) {
+    const profile = await env.auth.prepare("SELECT * FROM profiles WHERE id = ?")
+        .bind(request.headers.get("Authorization"))
+        .first();
+
+    return new Response(JSON.stringify(profile), { status: 200, headers: { "Content-Type": "application/json" } });
+}
