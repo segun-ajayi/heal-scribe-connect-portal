@@ -42,12 +42,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 credentials: "include",
             });
 
-            console.log("API Response Status:", res.status);
-
             const data = await res.json();
-            console.log("Fetched User Data:", data);
+            console.log("API Response:", data);
 
             if (res.ok && data.user) {
+                console.log("Setting User:", data.user);
                 setUser(data.user);
                 setUserRole(data.user.role);
             } else {

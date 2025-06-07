@@ -12,22 +12,19 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("Checking for authentication...");
+      const token = localStorage.getItem("token");
+      console.log("Checking for token...");
 
-    const token = localStorage.getItem("token");
-    console.log("Stored Token:", token);
-
-    if (token) {
-      if (fetchUser) {
-        console.log("Token found, calling fetchUser...");
-        fetchUser().catch((err) => console.error("fetchUser Error:", err)); // ✅ Log errors
+      if (token) {
+          console.log("Token found, calling fetchUser...");
+          fetchUser()
+              .then(() => console.log("User after fetchUser:", user))
+              .catch((err) => console.error("fetchUser Error:", err));
       } else {
-        console.error("fetchUser is undefined!");
+          console.log("No token found, redirecting to login...");
+          navigate("/login");
       }
-    } else {
-      console.log("No token found, redirecting to login...");
-      navigate("/login");
-    }
+
   }, [fetchUser, navigate]);
 
   const { data: stats, isLoading: statsLoading, error: statsError } = useAdminStats();
