@@ -21,7 +21,6 @@ const AdminDashboard = () => {
   // ✅ Ensure authentication before loading dashboard
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log(token, 'segun2323');
     if (token) {
       fetchUser(); // Refresh session on load
     } else {
@@ -29,7 +28,6 @@ const AdminDashboard = () => {
       navigate('/login');
     }
   }, [fetchUser, navigate]);
-  console.log('segun2');
   if (loading) {
     return <p>Loading...</p>; // Prevent UI flash before authentication check
   }
