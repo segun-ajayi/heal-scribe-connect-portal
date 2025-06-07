@@ -3,10 +3,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
+import ProtectedRoute from "./components/ProtectedRoute"; // ✅ Import ProtectedRoute
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Publications from "./pages/Publications";
@@ -25,25 +26,6 @@ import PatientDashboard from "./pages/patient/Dashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
-
-// ✅ Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const token = localStorage.getItem("token");
-  if (!token) return <Navigate to="/login" />;
-
-  const user = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
-  const isAdmin = user.role === "admin";
-
-  // ✅ Redirect based on role
-  if (isAdmin && window.location.pathname.startsWith("/patient")) {
-    return <Navigate to="/admin/dashboard" />;
-  }
-  if (!isAdmin && window.location.pathname.startsWith("/admin")) {
-    return <Navigate to="/patient/dashboard" />;
-  }
-
-  return children;
-};
 
 const App: React.FC = () => {
   return (

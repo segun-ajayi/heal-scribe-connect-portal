@@ -21,41 +21,72 @@ async function generateJwt(payload, secret) {
     return `${encodedHeader}.${encodedPayload}.${btoa(String.fromCharCode(...new Uint8Array(signature)))}`;
 }
 
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "https://heal-scribe-connect-portal.pages.dev", // ✅ Allow frontend
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Credentials": "true",
+};
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
+        // ✅ Handle CORS preflight requests
+        if (request.method === "OPTIONS") {
+            return new Response(null, { headers: corsHeaders });
+        }
+
+        // ✅ Ensure all responses include CORS headers
         if (url.pathname === "/auth/login") {
-            return handleLogin(request, env);
+            const response = await handleLogin(request, env);
+            return addCorsHeaders(response);
         }
 
         if (url.pathname === "/auth/protected") {
-            return verifyToken(request, env);
+            const response = await verifyToken(request, env);
+            return addCorsHeaders(response);
         }
 
-        return new Response("Not Found", { status: 404 });
+        return addCorsHeaders(new Response("Not Found", { status: 404 }));
     }
 };
 
-async function handleLogin(request, env) {
-    const { email, password } = await request.json();
-
-    const user = await env.auth.prepare("SELECT * FROM users WHERE email = ?").bind(email).first();
-    if (!user || user.password !== password) {
-        return new Response(JSON.stringify({ success: false, message: "Invalid credentials" }), { status: 401 });
-    }
-
-    // Generate JWT token
-    const token = await generateJwt({ email, role: user.role }, env.JWT_SECRET);
-
-    // ✅ Set HttpOnly, Secure cookie from the server
-    return new Response(JSON.stringify({ success: true }), {
-        headers: {
-            "Set-Cookie": `token=${token}; HttpOnly; Secure; SameSite=Strict; Path=/`,
-            "Content-Type": "application/json",
-        },
-    });
+// ✅ Helper function to add CORS headers to responses
+function addCorsHeaders(response) {
+    const newHeaders = new Headers(response.headers);
+    Object.entries(corsHeaders).forEach(([key, value]) => newHeaders.set(key, value));
+    return new Response(response.body, { status: response.status, headers: newHeaders });
 }
+
+
+async function handleLogin(request, env) {
+    try {
+        const requestData = await request.json();
+        console.log("Request Data:", requestData); // ✅ Debugging log
+
+        if (!requestData || !requestData.email || !requestData.password) {
+            return new Response(JSON.stringify({ success: false, message: "Missing credentials" }), { status: 400 });
+        }
+
+        // ✅ Debug D1 Database Query
+        console.log(`Fetching user: ${requestData.email}`);
+        const user = await env.auth.prepare("SELECT * FROM users WHERE email = ?").bind(requestData.email).first();
+
+        console.log("User Found:", user); // ✅ Debugging log
+
+        if (!user || user.password !== requestData.password) {
+            return new Response(JSON.stringify({ success: false, message: "Invalid credentials" }), { status: 401 });
+        }
+
+        const token = await generateJwt({ email: requestData.email }, env.JWT_SECRET);
+        return new Response(JSON.stringify({ success: true, token }), { status: 200 });
+    } catch (error) {
+        console.error("Login Error:", error);
+        return new Response(JSON.stringify({ success: false, message: "Server error", error: error.toString() }), { status: 500 });
+    }
+}
+
 
 async function verifyToken(request, env) {
     const authHeader = request.headers.get("Authorization");
@@ -95,4 +126,3 @@ async function verifyJwt(token, secret) {
     return isValid ? JSON.parse(atob(encodedPayload)) : null;
 }
 
-const token = await generateJwt({ email, role }, env.JWT_SECRET, { expiresIn: "1h" });
