@@ -31,7 +31,7 @@ const AdminDashboard = () => {
   if (loading) {
     return <p>Loading...</p>; // Prevent UI flash before authentication check
   }
-
+  console.log(user);
   if (!user) {
     return (
         <div className="container mx-auto py-8 px-4 text-center">
