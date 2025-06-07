@@ -23,14 +23,13 @@ const AdminDashboard = () => {
     const token = localStorage.getItem('token');
     console.log(token, 'segin');
     if (token) {
-      console.log('segun');
       fetchUser(); // Refresh session on load
     } else {
       console.log('No token found, redirecting to login...');
       navigate('/login');
     }
   }, [fetchUser, navigate]);
-  console.log('segun');
+  console.log('segun2');
   if (loading) {
     return <p>Loading...</p>; // Prevent UI flash before authentication check
   }
