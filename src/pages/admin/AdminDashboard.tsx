@@ -23,6 +23,7 @@ const AdminDashboard = () => {
     const token = localStorage.getItem('token');
     console.log(token, 'segin');
     if (token) {
+      console.log('segun');
       fetchUser(); // Refresh session on load
     } else {
       console.log('No token found, redirecting to login...');
