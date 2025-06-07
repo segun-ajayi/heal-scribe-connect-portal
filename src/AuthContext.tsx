@@ -17,45 +17,40 @@ interface AuthContextType {
     register: (email: string, password: string, name: string) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-    user: null,
-    loading: true,
-    login: async () => {},
-    logout: () => {},
-    fetchUser: async () => {},
-    register: async () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchUser = async () => {
-        const token = localStorage.getItem("token"); // ✅ Check stored token
-        if (!token) {
-            setUser(null);
-            setLoading(false);
-            return;
-        }
-        console.log('ajayi');
         try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                console.log("No token found, setting user to null");
+                setUser(null);
+                return;
+            }
+
             const res = await fetch("https://iyawo-website-worker.mortalerror.workers.dev/me", {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}` },
                 credentials: "include",
             });
 
-            if (res.ok) {
-                const data = await res.json();
+            const data = await res.json();
+            console.log("Fetched User Data:", data);
+
+            if (res.ok && data.user) {
                 setUser(data.user);
             } else {
+                console.log("User data invalid, setting user to null");
                 setUser(null);
-                localStorage.removeItem("token"); // Remove invalid token
             }
         } catch (err) {
-            console.error("Failed to fetch user", err);
+            console.error("Failed to fetch user:", err);
             setUser(null);
-            localStorage.removeItem("token");
         } finally {
             setLoading(false);
         }

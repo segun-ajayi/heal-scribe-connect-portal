@@ -21,7 +21,9 @@ const AdminDashboard = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      fetchUser(); // Refresh session on load
+      if (fetchUser) {
+        fetchUser();
+      }
     } else {
       console.log('No token found, redirecting to login...');
       navigate('/login');
