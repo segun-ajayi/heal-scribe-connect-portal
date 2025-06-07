@@ -54,12 +54,19 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = "patient" }: AuthModal
         : { email: formData.email, password: formData.password, fullName: formData.fullName };
 
     const result = await authenticateUser(endpoint, payload);
+
     if (result) {
       toast({ title: "Success!", description: isLogin ? "Logged in!" : "Account created!" });
 
       if (isLogin) {
         localStorage.setItem("token", result.token); // ✅ Store JWT token
-        window.location.href = "/dashboard"; // Redirect after login
+
+        // ✅ Decode JWT and get role
+        const user = JSON.parse(atob(result.token.split(".")[1]));
+        const isAdmin = user.role === "admin";
+
+        // ✅ Redirect based on role
+        window.location.href = isAdmin ? "/admin/dashboard" : "/patient/dashboard";
       }
 
       onClose();
