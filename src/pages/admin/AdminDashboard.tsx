@@ -36,9 +36,9 @@ const AdminDashboard = () => {
     return (
         <div className="container mx-auto py-8 px-4 text-center">
           <p>Please log in to access the admin dashboard.</p>
-          <button onClick={() => navigate('/login')} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">
-            Login
-          </button>
+          {/*<button onClick={() => navigate('/login')} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">*/}
+          {/*  Login*/}
+          {/*</button>*/}
         </div>
     );
   }
