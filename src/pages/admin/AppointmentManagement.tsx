@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,41 +13,18 @@ import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, User, Edit, Trash2, Plus, CheckCircle, XCircle } from 'lucide-react';
 
 const AppointmentManagement = () => {
-  const [appointments, setAppointments] = useState([
-    {
-      id: 1,
-      patientName: 'John Smith',
-      email: 'john.smith@email.com',
-      phone: '+1-555-0123',
-      date: '2024-06-15',
-      time: '09:00',
-      reason: 'Annual Checkup',
-      status: 'scheduled',
-      notes: 'Regular health assessment'
-    },
-    {
-      id: 2,
-      patientName: 'Sarah Johnson',
-      email: 'sarah.j@email.com',
-      phone: '+1-555-0456',
-      date: '2024-06-15',
-      time: '10:30',
-      reason: 'Follow-up consultation',
-      status: 'confirmed',
-      notes: 'Check blood pressure medication effects'
-    },
-    {
-      id: 3,
-      patientName: 'Mike Davis',
-      email: 'mike.davis@email.com',
-      phone: '+1-555-0789',
-      date: '2024-06-16',
-      time: '14:00',
-      reason: 'Urgent consultation',
-      status: 'pending',
-      notes: 'Patient experiencing chest pain'
-    }
-  ]);
+  const [appointments, setAppointments] = useState([]);
+
+  // Load appointments from localStorage on component mount
+  useEffect(() => {
+    const savedAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+    setAppointments(savedAppointments);
+  }, []);
+
+  // Save appointments to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('appointments', JSON.stringify(appointments));
+  }, [appointments]);
 
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -455,3 +431,5 @@ const AppointmentManagement = () => {
 };
 
 export default AppointmentManagement;
+
+}

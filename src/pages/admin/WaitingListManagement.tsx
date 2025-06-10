@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,42 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Clock, User, Calendar, AlertCircle, Check, X, CalendarPlus } from 'lucide-react';
 
 const WaitingListManagement = () => {
-  const [waitingList, setWaitingList] = useState([
-    {
-      id: 1,
-      patientName: 'John Smith',
-      email: 'john.smith@email.com',
-      phone: '+1-555-0123',
-      requestedDate: '2024-02-15',
-      reason: 'Annual Checkup',
-      priority: 'normal',
-      addedAt: '2024-01-20',
-      status: 'waiting'
-    },
-    {
-      id: 2,
-      patientName: 'Sarah Johnson',
-      email: 'sarah.j@email.com',
-      phone: '+1-555-0456',
-      requestedDate: '2024-02-10',
-      reason: 'Follow-up consultation',
-      priority: 'high',
-      addedAt: '2024-01-18',
-      status: 'waiting'
-    },
-    {
-      id: 3,
-      patientName: 'Mike Davis',
-      email: 'mike.davis@email.com',
-      phone: '+1-555-0789',
-      requestedDate: '2024-02-20',
-      reason: 'Urgent consultation',
-      priority: 'urgent',
-      addedAt: '2024-01-22',
-      status: 'waiting'
-    }
-  ]);
-
+  const [waitingList, setWaitingList] = useState([]);
   const [scheduleData, setScheduleData] = useState({
     date: '',
     time: '',
@@ -57,6 +21,17 @@ const WaitingListManagement = () => {
   });
 
   const { toast } = useToast();
+
+  // Load waiting list from localStorage on component mount
+  useEffect(() => {
+    const savedWaitingList = JSON.parse(localStorage.getItem('waitingList') || '[]');
+    setWaitingList(savedWaitingList);
+  }, []);
+
+  // Save waiting list to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('waitingList', JSON.stringify(waitingList));
+  }, [waitingList]);
 
   const handleApprove = (patientId: number) => {
     setWaitingList(waitingList.map(patient => 
@@ -88,6 +63,26 @@ const WaitingListManagement = () => {
         variant: "destructive"
       });
       return;
+    }
+
+    // Add to appointments (in a real app, this would be API calls)
+    const patient = waitingList.find(p => p.id === patientId);
+    if (patient) {
+      const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+      const newAppointment = {
+        id: Date.now(),
+        patientName: patient.patientName,
+        email: patient.email,
+        phone: patient.phone,
+        date: scheduleData.date,
+        time: scheduleData.time,
+        reason: patient.reason,
+        status: 'scheduled',
+        notes: scheduleData.notes
+      };
+      
+      const updatedAppointments = [...existingAppointments, newAppointment];
+      localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
     }
 
     setWaitingList(waitingList.map(patient => 

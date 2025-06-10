@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -26,6 +26,41 @@ import PatientDashboard from "./pages/patient/Dashboard";
 
 const queryClient = new QueryClient();
 
+const AppContent: React.FC = () => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {!isAdminRoute && <Header />}
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/publications" element={<Publications />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogPost />} />
+          <Route path="/appointments" element={<Appointments />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/appointments" element={<AppointmentManagement />} />
+          <Route path="/admin/blog" element={<BlogManagement />} />
+          <Route path="/admin/publications" element={<PublicationManagement />} />
+          <Route path="/admin/admins" element={<AdminManagement />} />
+          <Route path="/admin/waiting-list" element={<WaitingListManagement />} />
+          
+          {/* Patient Routes */}
+          <Route path="/patient/dashboard" element={<PatientDashboard />} />
+        </Routes>
+      </main>
+      {!isAdminRoute && <Footer />}
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -34,33 +69,7 @@ const App: React.FC = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <div className="min-h-screen bg-slate-50 flex flex-col">
-              <Header />
-              <main className="flex-1">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/publications" element={<Publications />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/blog/:id" element={<BlogPost />} />
-                  <Route path="/appointments" element={<Appointments />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  
-                  {/* Admin Routes */}
-                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                  <Route path="/admin/appointments" element={<AppointmentManagement />} />
-                  <Route path="/admin/blog" element={<BlogManagement />} />
-                  <Route path="/admin/publications" element={<PublicationManagement />} />
-                  <Route path="/admin/admins" element={<AdminManagement />} />
-                  <Route path="/admin/waiting-list" element={<WaitingListManagement />} />
-                  
-                  {/* Patient Routes */}
-                  <Route path="/patient/dashboard" element={<PatientDashboard />} />
-                </Routes>
-              </main>
-              <Footer />
-            </div>
+            <AppContent />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

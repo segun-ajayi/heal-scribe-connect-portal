@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Clock, MapPin, Phone, Mail, User } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const Appointments = () => {
   const { toast } = useToast();
@@ -24,12 +25,13 @@ const Appointments = () => {
     currentMedications: "",
     insuranceProvider: "",
     emergencyContact: "",
-    emergencyPhone: ""
+    emergencyPhone: "",
+    priority: "normal"
   });
 
   const appointmentTypes = [
     "Initial Consultation",
-    "Follow-up Appointment",
+    "Follow-up Appointment", 
     "Pre-operative Assessment",
     "Post-operative Check-up",
     "Second Opinion",
@@ -45,6 +47,33 @@ const Appointments = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const addToWaitingList = (appointmentData: any) => {
+    // Get existing waiting list from localStorage or start with empty array
+    const existingWaitingList = JSON.parse(localStorage.getItem('waitingList') || '[]');
+    
+    const newWaitingListEntry = {
+      id: Date.now(), // Simple ID generation
+      patientName: `${appointmentData.firstName} ${appointmentData.lastName}`,
+      email: appointmentData.email,
+      phone: appointmentData.phone,
+      requestedDate: appointmentData.preferredDate,
+      reason: appointmentData.reason || appointmentData.appointmentType,
+      priority: appointmentData.priority,
+      addedAt: new Date().toISOString().split('T')[0],
+      status: 'waiting',
+      medicalHistory: appointmentData.medicalHistory,
+      currentMedications: appointmentData.currentMedications,
+      appointmentType: appointmentData.appointmentType,
+      preferredTime: appointmentData.preferredTime
+    };
+    
+    // Add to waiting list
+    const updatedWaitingList = [...existingWaitingList, newWaitingListEntry];
+    localStorage.setItem('waitingList', JSON.stringify(updatedWaitingList));
+    
+    return newWaitingListEntry;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -58,9 +87,12 @@ const Appointments = () => {
       return;
     }
 
+    // Add to waiting list
+    const waitingListEntry = addToWaitingList(formData);
+    
     toast({
-      title: "Appointment Request Submitted",
-      description: "We'll contact you within 24 hours to confirm your appointment.",
+      title: "Added to Waiting List",
+      description: "Your appointment request has been added to our waiting list. We'll contact you within 24 hours to confirm your appointment.",
     });
 
     // Reset form
@@ -78,7 +110,8 @@ const Appointments = () => {
       currentMedications: "",
       insuranceProvider: "",
       emergencyContact: "",
-      emergencyPhone: ""
+      emergencyPhone: "",
+      priority: "normal"
     });
   };
 
@@ -189,6 +222,19 @@ const Appointments = () => {
                         </Select>
                       </div>
                       <div>
+                        <Label htmlFor="priority">Priority Level</Label>
+                        <Select value={formData.priority} onValueChange={(value) => handleInputChange("priority", value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select priority" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="normal">Normal</SelectItem>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="urgent">Urgent</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
                         <Label htmlFor="preferredDate">Preferred Date</Label>
                         <Input
                           id="preferredDate"
@@ -198,7 +244,7 @@ const Appointments = () => {
                           min={new Date().toISOString().split('T')[0]}
                         />
                       </div>
-                      <div className="md:col-span-2">
+                      <div>
                         <Label htmlFor="preferredTime">Preferred Time</Label>
                         <Select value={formData.preferredTime} onValueChange={(value) => handleInputChange("preferredTime", value)}>
                           <SelectTrigger>
@@ -280,7 +326,7 @@ const Appointments = () => {
                   </div>
 
                   <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" size="lg">
-                    Submit Appointment Request
+                    Join Waiting List
                   </Button>
                 </form>
               </CardContent>
