@@ -1,56 +1,50 @@
 
-import { Link } from "react-router-dom";
-import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import React from 'react';
+import { Link } from 'react-router-dom';
 
-export const Footer = () => {
+export const Footer: React.FC = () => {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid md:grid-cols-4 gap-8">
-          {/* About Section */}
-          <div className="md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">FW</span>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Practice Info */}
+          <div className="col-span-1 md:col-span-2">
+            <div className="flex items-center mb-4">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-white font-bold text-sm">DA</span>
               </div>
               <div>
-                <h3 className="text-xl font-bold">Dr. Funmilola Wuraola</h3>
-                <p className="text-gray-300">General Surgeon</p>
+                <h2 className="text-xl font-bold">Dr. Funmilola Wuraola Ajayi</h2>
+                <p className="text-gray-300">Medical Practice</p>
               </div>
             </div>
-            <p className="text-gray-300 mb-4">
-              Providing exceptional surgical care at Obafemi Awolowo University Teaching Hospitals Complex, 
-              Ile-Ife. Committed to excellence in patient care, medical education, and research.
+            <p className="text-gray-400 mb-4">
+              Providing comprehensive healthcare services with dedication to patient care and medical excellence.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
+            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-gray-300 hover:text-white transition-colors">
-                  Home
+                <Link to="/about" className="text-gray-400 hover:text-white">
+                  About Dr. Ajayi
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-gray-300 hover:text-white transition-colors">
-                  About
+                <Link to="/appointments" className="text-gray-400 hover:text-white">
+                  Book Appointment
                 </Link>
               </li>
               <li>
-                <Link to="/publications" className="text-gray-300 hover:text-white transition-colors">
+                <Link to="/publications" className="text-gray-400 hover:text-white">
                   Publications
                 </Link>
               </li>
               <li>
-                <Link to="/blog" className="text-gray-300 hover:text-white transition-colors">
+                <Link to="/blog" className="text-gray-400 hover:text-white">
                   Blog
-                </Link>
-              </li>
-              <li>
-                <Link to="/appointments" className="text-gray-300 hover:text-white transition-colors">
-                  Appointments
                 </Link>
               </li>
             </ul>
@@ -58,44 +52,19 @@ export const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h4 className="font-semibold mb-4">Contact Information</h4>
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <MapPin className="w-5 h-5 text-blue-400 mt-0.5" />
-                <div>
-                  <p className="text-gray-300 text-sm">
-                    Obafemi Awolowo University<br />
-                    Teaching Hospitals Complex<br />
-                    Ile-Ife, Osun State, Nigeria
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-blue-400" />
-                <p className="text-gray-300 text-sm">+234 (0) 803 XXX XXXX</p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-blue-400" />
-                <p className="text-gray-300 text-sm">dr.wuraola@oauthc.com</p>
-              </div>
-              <div className="flex items-start space-x-3">
-                <Clock className="w-5 h-5 text-blue-400 mt-0.5" />
-                <div>
-                  <p className="text-gray-300 text-sm">
-                    Mon - Fri: 8:00 AM - 5:00 PM<br />
-                    Sat: 9:00 AM - 2:00 PM<br />
-                    Emergency: 24/7
-                  </p>
-                </div>
-              </div>
+            <h3 className="text-lg font-semibold mb-4">Contact</h3>
+            <div className="space-y-2 text-gray-400">
+              <p>OAUTHC, Ile-Ife</p>
+              <p>Osun State, Nigeria</p>
+              <p>+234 (036) 230-0000</p>
+              <p>info@oauthc.com</p>
             </div>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-          <p className="text-gray-400 text-sm">
-            © {new Date().getFullYear()} Dr. Funmilola Wuraola. All rights reserved.
+        <div className="border-t border-gray-800 mt-12 pt-8 text-center">
+          <p className="text-gray-400">
+            © {new Date().getFullYear()} Dr. Funmilola Wuraola Ajayi. All rights reserved.
           </p>
         </div>
       </div>

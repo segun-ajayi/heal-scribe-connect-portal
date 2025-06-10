@@ -1,7 +1,57 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Mock data
+const mockAppointments = [
+  {
+    id: 1,
+    patient_id: 'current-user',
+    date: '2024-02-15',
+    time: '10:00:00',
+    reason: 'Annual Checkup',
+    status: 'scheduled',
+    notes: 'Bring previous test results'
+  },
+  {
+    id: 2,
+    patient_id: 'current-user',
+    date: '2024-01-20',
+    time: '14:30:00', 
+    reason: 'Follow-up',
+    status: 'completed',
+    notes: 'Blood pressure check'
+  }
+];
+
+const mockMedicalRecords = [
+  {
+    id: 1,
+    patient_id: 'current-user',
+    title: 'Annual Physical Exam',
+    content: 'Patient appears healthy. Blood pressure normal. Recommend continued exercise routine.',
+    record_type: 'examination',
+    record_date: '2024-01-20',
+    created_by: 'dr-smith'
+  },
+  {
+    id: 2,
+    patient_id: 'current-user',
+    title: 'Blood Test Results',
+    content: 'All blood work came back normal. Cholesterol levels within healthy range.',
+    record_type: 'lab_result',
+    record_date: '2024-01-15',
+    created_by: 'dr-smith'
+  }
+];
+
+const mockProfile = {
+  id: 'current-user',
+  full_name: 'John Patient',
+  email: 'patient@example.com',
+  phone: '+1-555-0123',
+  created_at: '2023-06-01'
+};
 
 export const usePatientAppointments = () => {
   const { user } = useAuth();
@@ -11,18 +61,9 @@ export const usePatientAppointments = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('patient_id', user.id)
-        .order('date', { ascending: true });
-      
-      if (error) {
-        console.error('Error fetching appointments:', error);
-        throw error;
-      }
-      
-      return data || [];
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockAppointments;
     },
     enabled: !!user?.id
   });
@@ -36,18 +77,9 @@ export const usePatientMedicalRecords = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase
-        .from('medical_records')
-        .select('*')
-        .eq('patient_id', user.id)
-        .order('record_date', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching medical records:', error);
-        throw error;
-      }
-      
-      return data || [];
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockMedicalRecords;
     },
     enabled: !!user?.id
   });
@@ -61,18 +93,9 @@ export const usePatientProfile = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching profile:', error);
-        throw error;
-      }
-      
-      return data;
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockProfile;
     },
     enabled: !!user?.id
   });

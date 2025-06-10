@@ -1,7 +1,49 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Mock data
+const mockStats = {
+  totalPatients: 156,
+  todayAppointments: 8,
+  blogPosts: 12,
+  publications: 24,
+  waitingList: 5
+};
+
+const mockAppointments = [
+  {
+    id: 1,
+    patient_id: 'patient-1',
+    time: '09:00:00',
+    date: new Date().toISOString().split('T')[0],
+    reason: 'Annual Checkup',
+    status: 'scheduled'
+  },
+  {
+    id: 2,
+    patient_id: 'patient-2', 
+    time: '10:30:00',
+    date: new Date().toISOString().split('T')[0],
+    reason: 'Follow-up',
+    status: 'confirmed'
+  }
+];
+
+const mockBlogPosts = [
+  {
+    id: 1,
+    title: 'Understanding Heart Health',
+    created_at: '2024-01-15',
+    status: 'published'
+  },
+  {
+    id: 2,
+    title: 'Managing Diabetes',
+    created_at: '2024-01-10', 
+    status: 'draft'
+  }
+];
 
 export const useAdminStats = () => {
   const { user, userRole } = useAuth();
@@ -9,42 +51,9 @@ export const useAdminStats = () => {
   return useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      // Get total patients
-      const { count: patientCount } = await supabase
-        .from('user_roles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'patient');
-
-      // Get today's appointments
-      const today = new Date().toISOString().split('T')[0];
-      const { count: todayAppointments } = await supabase
-        .from('appointments')
-        .select('*', { count: 'exact', head: true })
-        .eq('date', today);
-
-      // Get total blog posts
-      const { count: blogPosts } = await supabase
-        .from('blog_posts')
-        .select('*', { count: 'exact', head: true });
-
-      // Get total publications
-      const { count: publications } = await supabase
-        .from('publications')
-        .select('*', { count: 'exact', head: true });
-
-      // Get waiting list count
-      const { count: waitingList } = await supabase
-        .from('waiting_list')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-
-      return {
-        totalPatients: patientCount || 0,
-        todayAppointments: todayAppointments || 0,
-        blogPosts: blogPosts || 0,
-        publications: publications || 0,
-        waitingList: waitingList || 0
-      };
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockStats;
     },
     enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
   });
@@ -56,21 +65,9 @@ export const useRecentAppointments = () => {
   return useQuery({
     queryKey: ['recent-appointments'],
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('date', today)
-        .order('time', { ascending: true })
-        .limit(10);
-
-      if (error) {
-        console.error('Error fetching recent appointments:', error);
-        throw error;
-      }
-      
-      return data || [];
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockAppointments;
     },
     enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
   });
@@ -82,18 +79,9 @@ export const useRecentBlogPosts = () => {
   return useQuery({
     queryKey: ['recent-blog-posts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (error) {
-        console.error('Error fetching recent blog posts:', error);
-        throw error;
-      }
-      
-      return data || [];
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockBlogPosts;
     },
     enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
   });

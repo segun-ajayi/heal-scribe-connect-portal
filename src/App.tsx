@@ -16,14 +16,12 @@ import BlogPost from "./pages/BlogPost";
 import Appointments from "./pages/Appointments";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
-import AppointmentManagement from "./pages/AppointmentManagement";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import BlogManagement from "./pages/admin/BlogManagement";
 import PublicationManagement from "./pages/admin/PublicationManagement";
 import AdminManagement from "./pages/admin/AdminManagement";
 import WaitingListManagement from "./pages/admin/WaitingListManagement";
 import PatientDashboard from "./pages/patient/Dashboard";
-import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -50,7 +48,6 @@ const App: React.FC = () => {
                   
                   {/* Admin Routes */}
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                  <Route path="/admin/appointments" element={<AppointmentManagement />} />
                   <Route path="/admin/blog" element={<BlogManagement />} />
                   <Route path="/admin/publications" element={<PublicationManagement />} />
                   <Route path="/admin/admins" element={<AdminManagement />} />
@@ -58,8 +55,6 @@ const App: React.FC = () => {
                   
                   {/* Patient Routes */}
                   <Route path="/patient/dashboard" element={<PatientDashboard />} />
-                  
-                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
               <Footer />

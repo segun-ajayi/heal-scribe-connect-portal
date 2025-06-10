@@ -69,7 +69,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = "patient" }: AuthModal
         } else {
           toast({
             title: "Registration Successful",
-            description: "Please check your email to verify your account."
+            description: "Your account has been created successfully."
           });
           onClose();
         }
@@ -162,6 +162,9 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = "patient" }: AuthModal
                 <CardDescription>
                   Sign in to your admin account
                 </CardDescription>
+                <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
+                  <p className="text-blue-700">Demo: admin@example.com / admin123</p>
+                </div>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleAdminSubmit} className="space-y-4">
@@ -215,7 +218,6 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = "patient" }: AuthModal
                   <button
                     onClick={() => {
                       onClose();
-                      // Navigate to reset password - you might want to handle this differently
                       window.location.href = '/reset-password';
                     }}
                     className="text-sm text-blue-600 hover:text-blue-800"
@@ -255,6 +257,11 @@ const PatientAuthTab = ({
             : "Create a new patient account"
           }
         </CardDescription>
+        {isLogin && (
+          <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
+            <p className="text-blue-700">Demo: patient@example.com / patient123</p>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={(e) => onSubmit(e, isLogin)} className="space-y-4">

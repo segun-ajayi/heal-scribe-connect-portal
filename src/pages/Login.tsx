@@ -1,28 +1,51 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login process
-    setTimeout(() => {
+    try {
+      const { error } = await signIn(email, password);
+      if (error) {
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully logged in."
+        });
+        navigate("/");
+      }
+    } catch (error) {
+      toast({
+        title: "An error occurred",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-      console.log("Login attempted with:", email, password);
-      // Here you would implement actual authentication
-    }, 1000);
+    }
   };
 
   return (
@@ -33,6 +56,11 @@ const Login = () => {
           <CardDescription>
             Sign in to access the appointment management system
           </CardDescription>
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm">
+            <p className="font-semibold text-blue-800">Demo Credentials:</p>
+            <p className="text-blue-700">Admin: admin@example.com / admin123</p>
+            <p className="text-blue-700">Patient: patient@example.com / patient123</p>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

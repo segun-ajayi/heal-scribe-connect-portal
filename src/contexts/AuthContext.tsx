@@ -1,10 +1,14 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+
+interface User {
+  id: string;
+  email: string;
+  created_at: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   isLoading: boolean;
   userRole: 'admin' | 'super_admin' | 'patient' | null;
   signUp: (email: string, password: string, fullName: string, role?: 'admin' | 'patient') => Promise<{ error: any }>;
@@ -22,104 +26,86 @@ export const useAuth = () => {
   return context;
 };
 
+// Mock users data
+const mockUsers = [
+  { id: '1', email: 'admin@example.com', password: 'admin123', role: 'super_admin' as const, fullName: 'Admin User' },
+  { id: '2', email: 'patient@example.com', password: 'patient123', role: 'patient' as const, fullName: 'John Patient' },
+];
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<'admin' | 'super_admin' | 'patient' | null>(null);
 
-  const fetchUserRole = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return null;
-      }
-      
-      return data?.role as 'admin' | 'super_admin' | 'patient';
-    } catch (error) {
-      console.error('Error fetching user role:', error);
-      return null;
-    }
-  };
-
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Fetch user role when user logs in
-          const role = await fetchUserRole(session.user.id);
-          setUserRole(role);
-        } else {
-          setUserRole(null);
-        }
-        
-        setIsLoading(false);
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        const role = await fetchUserRole(session.user.id);
-        setUserRole(role);
-      }
-      
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    // Check for existing session in localStorage
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      setUser(userData.user);
+      setUserRole(userData.role);
+    }
+    setIsLoading(false);
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'patient' = 'patient') => {
-    const redirectUrl = `${window.location.origin}/`;
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    const { error } = await supabase.auth.signUp({
+    // Check if user already exists
+    const existingUser = mockUsers.find(u => u.email === email);
+    if (existingUser) {
+      return { error: { message: 'User already exists' } };
+    }
+    
+    // Create new user
+    const newUser = {
+      id: Date.now().toString(),
       email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-          role: role
-        }
-      }
-    });
+      created_at: new Date().toISOString()
+    };
     
-    return { error };
+    setUser(newUser);
+    setUserRole(role);
+    
+    // Save to localStorage
+    localStorage.setItem('currentUser', JSON.stringify({ user: newUser, role }));
+    
+    return { error: null };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    return { error };
+    const mockUser = mockUsers.find(u => u.email === email && u.password === password);
+    if (!mockUser) {
+      return { error: { message: 'Invalid email or password' } };
+    }
+
+    const userData = {
+      id: mockUser.id,
+      email: mockUser.email,
+      created_at: new Date().toISOString()
+    };
+    
+    setUser(userData);
+    setUserRole(mockUser.role);
+    
+    // Save to localStorage
+    localStorage.setItem('currentUser', JSON.stringify({ user: userData, role: mockUser.role }));
+    
+    return { error: null };
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
-    }
+    setUser(null);
+    setUserRole(null);
+    localStorage.removeItem('currentUser');
   };
 
   const value = {
     user,
-    session,
     isLoading,
     userRole,
     signUp,
