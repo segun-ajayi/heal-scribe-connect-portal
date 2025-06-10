@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -116,159 +116,161 @@ const PublicationManagement = () => {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Publication Management</h1>
-        <Button onClick={() => setIsCreating(true)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          New Publication
-        </Button>
-      </div>
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Publication Management</h1>
+          <Button onClick={() => setIsCreating(true)} className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Add Publication
+          </Button>
+        </div>
 
-      {isCreating && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>{editingPublication ? 'Edit Publication' : 'Add New Publication'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {isCreating && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>{editingPublication ? 'Edit Publication' : 'Add New Publication'}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="journal">Journal</Label>
+                  <Label htmlFor="title">Title</Label>
                   <Input
-                    id="journal"
-                    value={formData.journal}
-                    onChange={(e) => setFormData({...formData, journal: e.target.value})}
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    required
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="publicationDate">Publication Date</Label>
-                  <Input
-                    id="publicationDate"
-                    type="date"
-                    value={formData.publicationDate}
-                    onChange={(e) => setFormData({...formData, publicationDate: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="authors">Authors (comma separated)</Label>
-                <Input
-                  id="authors"
-                  value={formData.authors}
-                  onChange={(e) => setFormData({...formData, authors: e.target.value})}
-                  placeholder="Dr. Jane Doe, Dr. John Smith"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="doi">DOI</Label>
-                  <Input
-                    id="doi"
-                    value={formData.doi}
-                    onChange={(e) => setFormData({...formData, doi: e.target.value})}
-                    placeholder="10.1016/j.example.2024.01.001"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="url">URL</Label>
-                  <Input
-                    id="url"
-                    type="url"
-                    value={formData.url}
-                    onChange={(e) => setFormData({...formData, url: e.target.value})}
-                    placeholder="https://example.com/publication"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="abstract">Abstract</Label>
-                <Textarea
-                  id="abstract"
-                  value={formData.abstract}
-                  onChange={(e) => setFormData({...formData, abstract: e.target.value})}
-                  rows={6}
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button type="submit">
-                  {editingPublication ? 'Update Publication' : 'Add Publication'}
-                </Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-6">
-        {publications.map((publication) => (
-          <Card key={publication.id}>
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold mb-2">{publication.title}</h3>
-                  <div className="text-sm text-gray-600 mb-3">
-                    <p><strong>Journal:</strong> {publication.journal}</p>
-                    <p><strong>Authors:</strong> {publication.authors.join(', ')}</p>
-                    <p><strong>Published:</strong> {publication.publicationDate}</p>
-                    {publication.doi && <p><strong>DOI:</strong> {publication.doi}</p>}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="journal">Journal</Label>
+                    <Input
+                      id="journal"
+                      value={formData.journal}
+                      onChange={(e) => setFormData({...formData, journal: e.target.value})}
+                    />
                   </div>
-                  {publication.abstract && (
-                    <p className="text-gray-700 mb-4">{publication.abstract}</p>
-                  )}
-                  {publication.url && (
-                    <a 
-                      href={publication.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      View Publication
-                    </a>
-                  )}
+
+                  <div>
+                    <Label htmlFor="publicationDate">Publication Date</Label>
+                    <Input
+                      id="publicationDate"
+                      type="date"
+                      value={formData.publicationDate}
+                      onChange={(e) => setFormData({...formData, publicationDate: e.target.value})}
+                    />
+                  </div>
                 </div>
+
+                <div>
+                  <Label htmlFor="authors">Authors (comma separated)</Label>
+                  <Input
+                    id="authors"
+                    value={formData.authors}
+                    onChange={(e) => setFormData({...formData, authors: e.target.value})}
+                    placeholder="Dr. Jane Doe, Dr. John Smith"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="doi">DOI</Label>
+                    <Input
+                      id="doi"
+                      value={formData.doi}
+                      onChange={(e) => setFormData({...formData, doi: e.target.value})}
+                      placeholder="10.1016/j.example.2024.01.001"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="url">URL</Label>
+                    <Input
+                      id="url"
+                      type="url"
+                      value={formData.url}
+                      onChange={(e) => setFormData({...formData, url: e.target.value})}
+                      placeholder="https://example.com/publication"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="abstract">Abstract</Label>
+                  <Textarea
+                    id="abstract"
+                    value={formData.abstract}
+                    onChange={(e) => setFormData({...formData, abstract: e.target.value})}
+                    rows={6}
+                  />
+                </div>
+
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleEdit(publication)}
-                  >
-                    <Edit className="w-4 h-4" />
+                  <Button type="submit">
+                    {editingPublication ? 'Update Publication' : 'Add Publication'}
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleDelete(publication.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    Cancel
                   </Button>
                 </div>
-              </div>
+              </form>
             </CardContent>
           </Card>
-        ))}
+        )}
+
+        <div className="grid gap-6">
+          {publications.map((publication) => (
+            <Card key={publication.id}>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold mb-2">{publication.title}</h3>
+                    <div className="text-sm text-gray-600 mb-3">
+                      <p><strong>Journal:</strong> {publication.journal}</p>
+                      <p><strong>Authors:</strong> {publication.authors.join(', ')}</p>
+                      <p><strong>Published:</strong> {publication.publicationDate}</p>
+                      {publication.doi && <p><strong>DOI:</strong> {publication.doi}</p>}
+                    </div>
+                    {publication.abstract && (
+                      <p className="text-gray-700 mb-4">{publication.abstract}</p>
+                    )}
+                    {publication.url && (
+                      <a 
+                        href={publication.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        View Publication
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEdit(publication)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDelete(publication.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 
