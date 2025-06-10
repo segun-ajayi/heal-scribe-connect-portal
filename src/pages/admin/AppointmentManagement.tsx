@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -431,5 +432,3 @@ const AppointmentManagement = () => {
 };
 
 export default AppointmentManagement;
-
-}
