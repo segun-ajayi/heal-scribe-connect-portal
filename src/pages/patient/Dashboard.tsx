@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,8 @@ const PatientDashboard = () => {
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editForm, setEditForm] = useState({
+    date: '',
+    time: '',
     reason: '',
     notes: ''
   });
@@ -85,6 +88,8 @@ const PatientDashboard = () => {
   const handleEditAppointment = (appointment) => {
     setEditingAppointment(appointment);
     setEditForm({
+      date: appointment.date || '',
+      time: appointment.time || '',
       reason: appointment.reason || '',
       notes: appointment.notes || ''
     });
@@ -364,6 +369,28 @@ const PatientDashboard = () => {
             <DialogTitle>Edit Appointment</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-date">Date</Label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={editForm.date}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, date: e.target.value }))}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-time">Time</Label>
+                <Input
+                  id="edit-time"
+                  type="time"
+                  value={editForm.time}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, time: e.target.value }))}
+                />
+              </div>
+            </div>
+            
             <div>
               <Label htmlFor="edit-reason">Reason for Visit</Label>
               <Input
