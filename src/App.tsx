@@ -22,6 +22,7 @@ import PublicationManagement from "./pages/admin/PublicationManagement";
 import AdminManagement from "./pages/admin/AdminManagement";
 import WaitingListManagement from "./pages/admin/WaitingListManagement";
 import AppointmentManagement from "./pages/admin/AppointmentManagement";
+import ContentManagement from "./pages/admin/ContentManagement";
 import PatientDashboard from "./pages/patient/Dashboard";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const AppContent: React.FC = () => {
           <Route path="/admin/publications" element={<PublicationManagement />} />
           <Route path="/admin/admins" element={<AdminManagement />} />
           <Route path="/admin/waiting-list" element={<WaitingListManagement />} />
+          <Route path="/admin/content" element={<ContentManagement />} />
           
           {/* Patient Routes */}
           <Route path="/patient/dashboard" element={<PatientDashboard />} />

@@ -7,7 +7,8 @@ import {
   Clock,
   Shield,
   LayoutDashboard,
-  Users
+  Users,
+  Settings
 } from "lucide-react";
 import {
   Sidebar,
@@ -48,6 +49,11 @@ const adminMenuItems = [
     title: "Waiting List",
     url: "/admin/waiting-list",
     icon: Clock,
+  },
+  {
+    title: "Content Management",
+    url: "/admin/content",
+    icon: Settings,
   },
   {
     title: "Manage Admins",
