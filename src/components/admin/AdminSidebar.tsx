@@ -8,7 +8,8 @@ import {
   Shield,
   LayoutDashboard,
   Users,
-  Settings
+  Settings,
+  UserCheck
 } from "lucide-react";
 import {
   Sidebar,
@@ -34,6 +35,11 @@ const adminMenuItems = [
     title: "Appointments",
     url: "/admin/appointments",
     icon: Calendar,
+  },
+  {
+    title: "Patient Management",
+    url: "/admin/patients",
+    icon: UserCheck,
   },
   {
     title: "Blog Management",

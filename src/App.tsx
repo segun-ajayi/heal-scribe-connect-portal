@@ -22,6 +22,7 @@ import PublicationManagement from "./pages/admin/PublicationManagement";
 import AdminManagement from "./pages/admin/AdminManagement";
 import WaitingListManagement from "./pages/admin/WaitingListManagement";
 import AppointmentManagement from "./pages/admin/AppointmentManagement";
+import PatientManagement from "./pages/admin/PatientManagement";
 import ContentManagement from "./pages/admin/ContentManagement";
 import PatientDashboard from "./pages/patient/Dashboard";
 
