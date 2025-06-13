@@ -23,8 +23,20 @@ import AdminManagement from "./pages/admin/AdminManagement";
 import WaitingListManagement from "./pages/admin/WaitingListManagement";
 import AppointmentManagement from "./pages/admin/AppointmentManagement";
 import PatientDashboard from "./pages/patient/Dashboard";
+import ProtectedRoute from "@/components/ProtectedRoute.tsx";
+import Unauthorized from "@/pages/Unauthorized.tsx";
+import ContentManagement from "./pages/admin/ContentManagement";
+import PatientManagement from "@/pages/admin/PatientManagement.tsx";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false,
+            retry: 2,
+            staleTime: 5 * 60 * 1000, // 5 minutes
+        },
+    },
+});
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -42,18 +54,80 @@ const AppContent: React.FC = () => {
           <Route path="/blog/:id" element={<BlogPost />} />
           <Route path="/appointments" element={<Appointments />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          
-          {/* Admin Routes */}
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/appointments" element={<AppointmentManagement />} />
-          <Route path="/admin/blog" element={<BlogManagement />} />
-          <Route path="/admin/publications" element={<PublicationManagement />} />
-          <Route path="/admin/admins" element={<AdminManagement />} />
-          <Route path="/admin/waiting-list" element={<WaitingListManagement />} />
-          
+
+          <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+          />
+          <Route
+              path="/admin/appointments"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <AppointmentManagement />
+                </ProtectedRoute>
+              }
+          />
+          <Route
+              path="/admin/patients"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <PatientManagement />
+                </ProtectedRoute>
+              }
+          />
+          <Route
+              path="/admin/blog"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <BlogManagement />
+                </ProtectedRoute>
+              }
+          />
+          <Route
+              path="/admin/publications"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <PublicationManagement />
+                </ProtectedRoute>
+              }
+          />
+          <Route
+              path="/admin/admins"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <AdminManagement />
+                </ProtectedRoute>
+              }
+          />
+          <Route
+              path="/admin/waiting-list"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                  <WaitingListManagement />
+                </ProtectedRoute>
+              }
+          />
+          <Route
+              path="/admin/content"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                    <ContentManagement />
+                </ProtectedRoute>
+              }
+          />
+
           {/* Patient Routes */}
-          <Route path="/patient/dashboard" element={<PatientDashboard />} />
+          <Route path="/patient/dashboard" element={
+            <ProtectedRoute allowedRoles={['patient']}>
+              <PatientDashboard />
+            </ProtectedRoute>
+          } />
         </Routes>
       </main>
       {!isAdminRoute && <Footer />}

@@ -47,42 +47,74 @@ const mockBlogPosts = [
 
 export const useAdminStats = () => {
   const { user, userRole } = useAuth();
-  
+
   return useQuery({
-    queryKey: ['admin-stats'],
+    queryKey: ["admin-stats"],
     queryFn: async () => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return mockStats;
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/stats`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch stats");
+
+      return response.json();
     },
-    enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
+    enabled: !!user && (userRole === "admin" || userRole === "super_admin"),
   });
 };
 
-export const useRecentAppointments = () => {
+export const useRecentAppointments = (page = 1) => {
   const { user, userRole } = useAuth();
-  
+
   return useQuery({
-    queryKey: ['recent-appointments'],
+    queryKey: ["recent-appointments", page], // ✅ Include page in query key to refetch on change
     queryFn: async () => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return mockAppointments;
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/appointments?page=${page}`, {
+        headers: { "Authorization": `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch appointments");
+      return response.json();
     },
-    enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
+    enabled: !!user && (userRole === "admin" || userRole === "super_admin"),
   });
 };
 
-export const useRecentBlogPosts = () => {
+export const useRecentBlogPosts = (page = 1) => {
   const { user, userRole } = useAuth();
   
   return useQuery({
-    queryKey: ['recent-blog-posts'],
+    queryKey: ['recent-blog-posts', page],
     queryFn: async () => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return mockBlogPosts;
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/blogs?page=${page}`, {
+        headers: { "Authorization": `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch blogs");
+      return response.json();
     },
     enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
+  });
+
+};
+
+export const useAdminPatients = (searchQuery, filterStatus) => {
+  const { user, userRole } = useAuth();
+
+  return useQuery({
+    queryKey: ["admin-patients", searchQuery, filterStatus],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/patients?query=${searchQuery}&status=${filterStatus}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch patients");
+      return response.json();
+    },
+    enabled: !!user && (userRole === "admin" || userRole === "super_admin"),
   });
 };

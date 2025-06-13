@@ -18,7 +18,8 @@ const BlogManagement = () => {
       excerpt: "A comprehensive guide to maintaining cardiovascular health...",
       status: "published",
       scheduledFor: null,
-      publishedAt: "2024-01-15"
+      publishedAt: "2024-01-15",
+      created_at: "2024-01-15"
     },
     {
       id: 2,

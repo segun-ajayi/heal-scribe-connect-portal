@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import {
   Calendar,
@@ -7,7 +6,9 @@ import {
   Clock,
   Shield,
   LayoutDashboard,
-  Users
+  Users,
+  Settings,
+  UserCheck
 } from "lucide-react";
 import {
   Sidebar,
@@ -35,6 +36,11 @@ const adminMenuItems = [
     icon: Calendar,
   },
   {
+    title: "Patients",
+    url: "/admin/patients",
+    icon: UserCheck,
+  },
+  {
     title: "Blog Management",
     url: "/admin/blog",
     icon: FileText,
@@ -48,6 +54,11 @@ const adminMenuItems = [
     title: "Waiting List",
     url: "/admin/waiting-list",
     icon: Clock,
+  },
+  {
+    title: "Content Management",
+    url: "/admin/content",
+    icon: Settings,
   },
   {
     title: "Manage Admins",
@@ -65,63 +76,63 @@ export function AdminSidebar() {
   }
 
   return (
-    <Sidebar>
-      <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Shield className="w-4 h-4 text-white" />
+      <Sidebar>
+        <SidebarHeader className="p-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Shield className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-lg">Admin Panel</h2>
+              <p className="text-sm text-gray-600">Dr. Wuraola's Practice</p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-semibold text-lg">Admin Panel</h2>
-            <p className="text-sm text-gray-600">Dr. Ajayi's Practice</p>
+        </SidebarHeader>
+
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminMenuItems.map((item) => {
+                  const isActive = location.pathname === item.url;
+                  return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild isActive={isActive}>
+                          <Link to={item.url} className="flex items-center gap-3">
+                            <item.icon className="w-4 h-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>General</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link to="/" className="flex items-center gap-3">
+                      <Users className="w-4 h-4" />
+                      <span>Back to Website</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+
+        <SidebarFooter className="p-4">
+          <div className="text-sm text-gray-600">
+            Logged in as: {userRole}
           </div>
-        </div>
-      </SidebarHeader>
-      
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Administration</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {adminMenuItems.map((item) => {
-                const isActive = location.pathname === item.url;
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive}>
-                      <Link to={item.url} className="flex items-center gap-3">
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>General</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/" className="flex items-center gap-3">
-                    <Users className="w-4 h-4" />
-                    <span>Back to Website</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter className="p-4">
-        <div className="text-sm text-gray-600">
-          Logged in as: {userRole}
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+        </SidebarFooter>
+      </Sidebar>
   );
 }

@@ -3,14 +3,23 @@ import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from './AdminSidebar';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import {Link, Navigate, useNavigate} from 'react-router-dom';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu.tsx";
+import {Button} from "@/components/ui/button.tsx";
+import {Calendar, LogOut, Settings, User} from "lucide-react";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
-  const { user, userRole, isLoading } = useAuth();
+  const { user, userRole, isLoading, signOut } = useAuth();
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -24,6 +33,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full flex-col">
@@ -34,6 +48,29 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               <SidebarTrigger />
               <div className="h-4 w-px bg-gray-300" />
               <h1 className="font-semibold">Admin Dashboard</h1>
+              <div className="flex items-center space-x-4 ml-auto">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="flex items-center space-x-2">
+                        <User className="w-4 h-4" />
+                        <span className="hidden sm:inline">{user.fullName}</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem asChild>
+                        <Link to={'/admin/dashboard'} className="flex items-center">
+                          <Settings className="w-4 h-4 mr-2" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut}>
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+              </div>
             </div>
             <div className="flex-1 p-4">
               {children}
@@ -42,7 +79,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </div>
         <footer className="border-t bg-white px-4 py-2">
           <div className="text-center text-sm text-gray-600">
-            Admin Panel - Dr. Funmilola Wuraola Ajayi Medical Practice © {new Date().getFullYear()}
+            Admin Panel - Dr. Funmilola Wuraola's Medical Practice © {new Date().getFullYear()}
           </div>
         </footer>
       </div>

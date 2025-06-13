@@ -1,17 +1,32 @@
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Calendar, FileText, BookOpen, Clock, TrendingUp, Loader2 } from 'lucide-react';
 import { useAdminStats, useRecentAppointments, useRecentBlogPosts } from '@/hooks/useAdminData';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { useNavigate } from "react-router-dom";
+import {Button} from "@/components/ui/button.tsx";
+
+
 
 const AdminDashboard = () => {
   const { user, userRole } = useAuth();
-  const { data: stats, isLoading: statsLoading } = useAdminStats();
-  const { data: recentAppointments = [], isLoading: appointmentsLoading } = useRecentAppointments();
+  const [page, setPage] = useState(1);
+  const { data: stats, isLoading: statsLoading, isError } = useAdminStats();
+  const { data: recentAppointments = [], isLoading: appointmentsLoading } = useRecentAppointments(page);
   const { data: recentPosts = [], isLoading: postsLoading } = useRecentBlogPosts();
+  const navigate = useNavigate();
+
+  console.log('Popo: ', recentPosts);
+
+  useEffect(() => {
+    if (!["admin", "super_admin"].includes(userRole)) {
+      navigate("/"); // Redirect non-admins to home
+    }
+  }, [userRole]);
+
 
   const formatTime = (timeString: string) => {
     return new Date(`1970-01-01T${timeString}`).toLocaleTimeString('en-US', {
@@ -32,40 +47,42 @@ const AdminDashboard = () => {
   const statsData = [
     {
       title: 'Total Patients',
-      value: statsLoading ? '...' : stats?.totalPatients?.toString() || '0',
+      value: statsLoading ? '...' : stats?.data?.totalPatients?.toString() || '0',
       change: '+12%',
       icon: Users,
       color: 'text-blue-600'
     },
     {
       title: 'Appointments Today',
-      value: statsLoading ? '...' : stats?.todayAppointments?.toString() || '0',
+      value: statsLoading ? '...' : stats?.data?.todayAppointments?.toString() || '0',
       change: '+5%',
       icon: Calendar,
       color: 'text-green-600'
     },
     {
       title: 'Blog Posts',
-      value: statsLoading ? '...' : stats?.blogPosts?.toString() || '0',
+      value: statsLoading ? '...' : stats?.data?.blogPosts?.toString() || '0',
       change: '+8%',
       icon: FileText,
       color: 'text-purple-600'
     },
     {
       title: 'Publications',
-      value: statsLoading ? '...' : stats?.publications?.toString() || '0',
+      value: statsLoading ? '...' : stats?.data?.publications?.toString() || '0',
       change: '+2%',
       icon: BookOpen,
       color: 'text-orange-600'
     },
     {
       title: 'Waiting List',
-      value: statsLoading ? '...' : stats?.waitingList?.toString() || '0',
+      value: statsLoading ? '...' : stats?.data?.waitingList?.toString() || '0',
       change: '-3%',
       icon: Clock,
       color: 'text-red-600'
     }
   ];
+
+  if (isError) return <p>Error fetching data</p>;
 
   return (
     <AdminLayout>
@@ -100,37 +117,41 @@ const AdminDashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Today's Appointments
+                <Calendar className="w-5 h-5" /> Today's Appointments
               </CardTitle>
             </CardHeader>
             <CardContent>
               {appointmentsLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                  Loading appointments...
-                </div>
-              ) : recentAppointments.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No appointments scheduled for today</p>
-                </div>
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                    Loading appointments...
+                  </div>
+              ) : recentAppointments?.data?.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No appointments scheduled for today</p>
+                  </div>
               ) : (
-                <div className="space-y-4">
-                  {recentAppointments.map((appointment) => (
-                    <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-semibold">Patient ID: {appointment.patient_id}</p>
-                        <p className="text-sm text-gray-600">{appointment.reason || 'Appointment'}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">{formatTime(appointment.time)}</p>
-                        <Badge variant="outline" className="mt-1">
-                          {appointment.status || 'scheduled'}
-                        </Badge>
-                      </div>
+                  <div>
+                    <div className="space-y-4">
+                      {recentAppointments?.data?.map((appointment) => (
+                          <div key={appointment.id} className="border rounded-lg p-4 flex justify-between">
+                            <div>
+                              <h3 className="font-semibold">{appointment.reason || "Appointment"}</h3>
+                              <p className="text-sm text-gray-500">{appointment.time}</p>
+                            </div>
+                            <Badge className="bg-blue-100 text-blue-800">{appointment.status || "scheduled"}</Badge>
+                          </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+
+                    {/* Pagination Controls */}
+                    <div className="flex justify-between mt-4">
+                      <Button onClick={() => setPage(prev => Math.max(1, prev - 1))} disabled={page === 1}>
+                        Previous
+                      </Button>
+                      <Button onClick={() => setPage(prev => prev + 1)}>Next</Button>
+                    </div>
+                  </div>
               )}
             </CardContent>
           </Card>
@@ -149,13 +170,13 @@ const AdminDashboard = () => {
                   <Loader2 className="w-6 h-6 animate-spin mr-2" />
                   Loading blog posts...
                 </div>
-              ) : recentPosts.length === 0 ? (
+              ) : recentPosts?.data?.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-gray-500">No blog posts available</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {recentPosts.map((post) => (
+                  {recentPosts?.data?.map((post) => (
                     <div key={post.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
                         <p className="font-semibold">{post.title}</p>

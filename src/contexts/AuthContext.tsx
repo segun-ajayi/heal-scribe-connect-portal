@@ -1,18 +1,28 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface User {
   id: string;
+  fullName: string;
   email: string;
   created_at: string;
 }
+
+interface AuthError {
+  message: string;
+}
+
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   userRole: 'admin' | 'super_admin' | 'patient' | null;
-  signUp: (email: string, password: string, fullName: string, role?: 'admin' | 'patient') => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (
+      email: string,
+      password: string,
+      fullName: string,
+      role?: 'admin' | 'patient'
+  ) => Promise<{ error: AuthError }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError }>;
   signOut: () => Promise<void>;
 }
 
@@ -26,19 +36,12 @@ export const useAuth = () => {
   return context;
 };
 
-// Mock users data
-const mockUsers = [
-  { id: '1', email: 'admin@example.com', password: 'admin123', role: 'super_admin' as const, fullName: 'Admin User' },
-  { id: '2', email: 'patient@example.com', password: 'patient123', role: 'patient' as const, fullName: 'John Patient' },
-];
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<'admin' | 'super_admin' | 'patient' | null>(null);
 
   useEffect(() => {
-    // Check for existing session in localStorage
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
       const userData = JSON.parse(savedUser);
@@ -48,54 +51,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'patient' = 'patient') => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Check if user already exists
-    const existingUser = mockUsers.find(u => u.email === email);
-    if (existingUser) {
-      return { error: { message: 'User already exists' } };
+  const signUp = async (
+      email: string,
+      password: string,
+      fullName: string,
+      role: 'admin' | 'patient' = 'patient'
+  ) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, fullName, role }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return { error: { message: data.error || 'Registration failed' } };
+      }
+
+      return { error: null };
+    } catch (err) {
+      console.error('SignUp error:', err);
+      return { error: { message: 'Network or server error' } };
     }
-    
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
-      email,
-      created_at: new Date().toISOString()
-    };
-    
-    setUser(newUser);
-    setUserRole(role);
-    
-    // Save to localStorage
-    localStorage.setItem('currentUser', JSON.stringify({ user: newUser, role }));
-    
-    return { error: null };
   };
 
   const signIn = async (email: string, password: string) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const mockUser = mockUsers.find(u => u.email === email && u.password === password);
-    if (!mockUser) {
-      return { error: { message: 'Invalid email or password' } };
-    }
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const userData = {
-      id: mockUser.id,
-      email: mockUser.email,
-      created_at: new Date().toISOString()
-    };
-    
-    setUser(userData);
-    setUserRole(mockUser.role);
-    
-    // Save to localStorage
-    localStorage.setItem('currentUser', JSON.stringify({ user: userData, role: mockUser.role }));
-    
-    return { error: null };
+      const data = await res.json();
+
+      if (!data.success) {
+        return { error: { message: data.error || 'Login failed' } };
+      }
+
+      // 🔥 Fix: Store JWT token
+      localStorage.setItem('token', data.token); // Ensure token is saved properly
+
+      const userData = {
+        id: data.id || 'unknown',
+        fullName: data.fullName,
+        email,
+        created_at: new Date().toISOString(),
+      };
+
+      setUser(userData);
+      setUserRole(data.role);
+      localStorage.setItem('currentUser', JSON.stringify({ user: userData, role: data.role }));
+      console.log('SignIn success:', data);
+      // Redirect based on role
+      const dashboardPath = data.role === "patient" ? "/patient/dashboard" : "/admin/dashboard";
+      window.location.href = dashboardPath;
+
+      return { error: null };
+    } catch (err) {
+      console.error('SignIn error:', err);
+      return { error: { message: 'Network or server error' } };
+    }
   };
 
   const signOut = async () => {
@@ -110,12 +130,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userRole,
     signUp,
     signIn,
-    signOut
+    signOut,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  // ✅ This return is required
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

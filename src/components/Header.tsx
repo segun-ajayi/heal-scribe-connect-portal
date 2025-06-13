@@ -73,7 +73,7 @@ export const Header: React.FC = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-2">
                     <User className="w-4 h-4" />
-                    <span className="hidden sm:inline">{user.email}</span>
+                    <span className="hidden sm:inline">{user.fullName}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
