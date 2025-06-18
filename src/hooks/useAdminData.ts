@@ -44,77 +44,77 @@ const mockBlogPosts = [
     status: 'draft'
   }
 ];
+interface returnData {
+  data: object[];
+  limit: number;
+  total: number;
+}
 
 export const useAdminStats = () => {
-  const { user, userRole } = useAuth();
+  const { user, userRole, authFetch } = useAuth();
 
   return useQuery({
     queryKey: ["admin-stats"],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/stats`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch stats");
-
-      return response.json();
-    },
+    queryFn: () =>
+        authFetch(`${import.meta.env.VITE_API_URL}/api/admin/stats`, {}),
     enabled: !!user && (userRole === "admin" || userRole === "super_admin"),
   });
 };
 
-export const useRecentAppointments = (page = 1) => {
-  const { user, userRole } = useAuth();
+export const useRecentAppointments = (page = 1, scope: string = "future") => {
+  const { user, userRole, authFetch } = useAuth();
 
   return useQuery({
-    queryKey: ["recent-appointments", page], // ✅ Include page in query key to refetch on change
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/appointments?page=${page}`, {
-        headers: { "Authorization": `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch appointments");
-      return response.json();
-    },
+    queryKey: ["recent-appointments", page, scope],
+    queryFn: () =>
+        authFetch(
+            `${import.meta.env.VITE_API_URL}/api/admin/appointments?page=${page}&scope=${scope}`,
+            {}
+        ),
     enabled: !!user && (userRole === "admin" || userRole === "super_admin"),
+  });
+};
+
+export const useAdminPatientAppointments = (
+    page = 1,
+    scope: string = "future",
+    patient: string | null = null
+) => {
+  const { user, userRole, authFetch } = useAuth();
+
+  const shouldFetch =
+      !!user && !!patient && (userRole === "admin" || userRole === "super_admin");
+
+  return useQuery({
+    queryKey: ["recent-appointments", page, scope, patient],
+    queryFn: () =>
+        authFetch(
+            `${import.meta.env.VITE_API_URL}/api/admin/patient/appointments/${patient}?page=${page}&scope=${scope}`,
+            {}
+        ),
+    enabled: shouldFetch,
   });
 };
 
 export const useRecentBlogPosts = (page = 1) => {
-  const { user, userRole } = useAuth();
+  const { user, userRole, authFetch } = useAuth();
   
   return useQuery({
     queryKey: ['recent-blog-posts', page],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/blogs?page=${page}`, {
-        headers: { "Authorization": `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch blogs");
-      return response.json();
-    },
+    queryFn: () =>
+        authFetch(
+            `${import.meta.env.VITE_API_URL}/api/admin/blogs?page=${page}`, {}),
     enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
   });
-
 };
 
 export const useAdminPatients = (searchQuery, filterStatus) => {
-  const { user, userRole } = useAuth();
+  const { user, userRole, authFetch } = useAuth();
 
   return useQuery({
     queryKey: ["admin-patients", searchQuery, filterStatus],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/patients?query=${searchQuery}&status=${filterStatus}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch patients");
-      return response.json();
-    },
+    queryFn: () => authFetch(`${import.meta.env.VITE_API_URL}/api/admin/patients?query=${searchQuery}&status=${filterStatus}`,
+        {}),
     enabled: !!user && (userRole === "admin" || userRole === "super_admin"),
   });
 };

@@ -25,38 +25,19 @@ import {
     Trash2,
     Eye
 } from 'lucide-react';
-import {useAdminPatients} from "@/hooks/useAdminData.ts";
+import {useAdminPatientAppointments, useAdminPatients, useRecentAppointments} from "@/hooks/useAdminData.ts";
 import { useAuth } from '@/contexts/AuthContext';
+import PatientProfileForm from "@/components/admin/PatientProfileForm.tsx";
+import AppointmentForm from "@/components/admin/AppointmentForm.tsx";
+import PatientRecords from "@/components/admin/PatientRecords.tsx";
 
 function handleSavePatient() {
 
 }
 
+
 const PatientManagement = () => {
-
-    const [appointments, setAppointments] = useState([
-        {
-            id: 1,
-            patient_id: 'patient-1',
-            patient_name: 'John Smith',
-            date: '2024-06-15',
-            time: '10:00',
-            reason: 'Annual Checkup',
-            status: 'scheduled',
-            notes: 'Patient reports feeling well'
-        },
-        {
-            id: 2,
-            patient_id: 'patient-2',
-            patient_name: 'Sarah Johnson',
-            date: '2024-06-16',
-            time: '14:30',
-            reason: 'Follow-up',
-            status: 'confirmed',
-            notes: 'Blood pressure monitoring'
-        }
-    ]);
-
+    const [page, setPage] = useState(1);
     const [medicalRecords, setMedicalRecords] = useState([
         {
             id: 1,
@@ -81,21 +62,24 @@ const PatientManagement = () => {
     ]);
 
     const [selectedPatient, setSelectedPatient] = useState(null);
+
+    const { data: recentAppointments = [], isLoading: appointmentsLoading } = useAdminPatientAppointments(page, 'all', selectedPatient?.patient_id);
     const [searchTerm, setSearchTerm] = useState('');
     const [isPatientDialogOpen, setIsPatientDialogOpen] = useState(false);
     const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
     const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
     const [editingAppointment, setEditingAppointment] = useState(null);
+    const [selectedAppointment, setSelectedAppointment] = useState(null);
+
 
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState("");
 
     const { data: patients, isLoading, isError } = useAdminPatients(searchQuery, filterStatus);
 
-    const { user, userRole } = useAuth();
+    const { user, userRole, authFetch } = useAuth();
 
-    console.log('Patients: ', patients);
 
     const [patientForm, setPatientForm] = useState({
         full_name: '',
@@ -110,24 +94,13 @@ const PatientManagement = () => {
         record_date: ''
     });
 
-    const [appointmentForm, setAppointmentForm] = useState({
-        date: '',
-        time: '',
-        reason: '',
-        status: 'scheduled',
-        notes: ''
-    });
-
     const { toast } = useToast();
 
     const filteredPatients = patients?.data?.filter(patient =>
         patient.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.email.toLowerCase().includes(searchTerm.toLowerCase())
+        patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(patient.patient_id).toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    const getPatientAppointments = (patientId) => {
-        return appointments?.filter(apt => apt.patient_id === patientId);
-    };
 
     const getPatientRecords = (patientId) => {
         return medicalRecords?.filter(record => record.patient_id === patientId);
@@ -144,29 +117,31 @@ const PatientManagement = () => {
         }
 
         try {
-            const token = localStorage.getItem("token");
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/profile`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify(patientForm)
-            });
 
-            if (response.ok) {
+            try {
+                await authFetch(
+                    `${import.meta.env.VITE_API_URL}/api/admin/profile`,
+                    {
+                        method: "POST",
+                        body: JSON.stringify(patientForm),
+                    }
+                );
+
                 toast({
                     title: "Account created successfully",
-                    description: "Patient account has been successfully created."
+                    description: "Patient account has been successfully created.",
                 });
+
                 setIsPatientDialogOpen(false);
                 setSelectedPatient(null);
-                setPatientForm({ full_name: '', email: '', phone: '' });
-            } else {
+                setPatientForm({ full_name: "", email: "", phone: "" });
+                window.location.reload();
+
+            } catch (error) {
                 toast({
                     title: "Failed to update profile",
-                    description: "Profile update failed!.",
-                    variant: "destructive"
+                    description: error?.message || "Profile update failed!",
+                    variant: "destructive",
                 });
             }
         } catch (err) {
@@ -179,24 +154,20 @@ const PatientManagement = () => {
         }
     };
 
-    const handleSaveProfile = async () => {
+    const handleSaveProfile = async (patient) => {
         try {
-            const token = localStorage.getItem("token");
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/profiles/${selectedPatient.user_id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify(selectedPatient)
-            });
+            try {
+                const response = await authFetch(`${import.meta.env.VITE_API_URL}/api/admin/profiles/${selectedPatient.user_id}`, {
+                    method: "PUT",
+                    body: JSON.stringify(patient)
+                });
 
-            if (response.ok) {
                 toast({
                     title: "Profile updated successfully",
                     description: "Profile has been successfully updated."
                 });
-            } else {
+            } catch (error) {
+                console.log('Profile create failed', error);
                 toast({
                     title: "Failed to update profile",
                     description: "Profile update failed!.",
@@ -258,8 +229,9 @@ const PatientManagement = () => {
         });
     };
 
-    const handleSaveAppointment = () => {
-        if (!appointmentForm.date || !appointmentForm.time || !selectedPatient) {
+    const handleSaveAppointment = async (appointmentForm) => {
+
+        if (!appointmentForm.preferred_date || !appointmentForm.preferred_time || !selectedPatient) {
             toast({
                 title: "Missing Information",
                 description: "Please fill in all required fields.",
@@ -268,39 +240,71 @@ const PatientManagement = () => {
             return;
         }
 
-        if (editingAppointment) {
-            setAppointments(appointments.map(apt =>
-                apt.id === editingAppointment.id
-                    ? { ...apt, ...appointmentForm }
-                    : apt
-            ));
-            toast({
-                title: "Appointment Updated",
-                description: "Appointment has been successfully updated."
-            });
+        const odo = {
+            patient_id: selectedPatient.patient_id,
+            appointment_id: editingAppointment.id,
+            ...appointmentForm
+        };
+
+        if(editingAppointment) {
+            try {
+                try {
+                    await authFetch(`${import.meta.env.VITE_API_URL}/api/admin/appointments/`, {
+                        method: "PUT",
+                        body: JSON.stringify(odo)
+                    });
+
+                    toast({
+                        title: "Appointment updated successfully",
+                        description: "Appointment has been successfully updated."
+                    });
+                } catch (error) {
+                    console.log('Error updating appointment', error);
+                    toast({
+                        title: "Failed to update appointment",
+                        description: "Appointment update failed!.",
+                        variant: "destructive"
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                toast({
+                    title: "Error",
+                    description: "An error occurred while updating!.",
+                    variant: "destructive"
+                });
+            }
         } else {
-            const newAppointment = {
-                ...appointmentForm,
-                id: Date.now(),
-                patient_id: selectedPatient.id,
-                patient_name: selectedPatient.full_name
-            };
-            setAppointments([...appointments, newAppointment]);
-            toast({
-                title: "Appointment Created",
-                description: "New appointment has been scheduled successfully."
-            });
+            try {
+                try{
+                    await authFetch(`${import.meta.env.VITE_API_URL}/api/admin/appointments/`, {
+                        method: "POST",
+                        body: JSON.stringify(odo)
+                    });
+
+                    toast({
+                        title: "Appointment created successfully",
+                        description: "Appointment has been successfully updated."
+                    });
+                } catch (error) {
+                    toast({
+                        title: "Failed to created appointment",
+                        description: "Appointment update failed!.",
+                        variant: "destructive"
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                toast({
+                    title: "Error",
+                    description: "An error occurred while updating!.",
+                    variant: "destructive"
+                });
+            }
         }
 
         setIsAppointmentDialogOpen(false);
         setEditingAppointment(null);
-        setAppointmentForm({
-            date: '',
-            time: '',
-            reason: '',
-            status: 'scheduled',
-            notes: ''
-        });
     };
 
     const openPatientDialog = (patient = null) => {
@@ -331,12 +335,13 @@ const PatientManagement = () => {
 
     const openAppointmentDialog = (appointment = null) => {
         setEditingAppointment(appointment);
-        setAppointmentForm(appointment ? {
-            date: appointment.date,
-            time: appointment.time,
+        setSelectedAppointment(appointment ? {
+            preferred_date: appointment.preferred_date,
+            preferred_time: appointment.preferred_time,
             reason: appointment.reason,
             status: appointment.status,
-            notes: appointment.notes
+            notes: appointment.notes,
+            appointment_id: appointment.id
         } : {
             date: '',
             time: '',
@@ -401,7 +406,7 @@ const PatientManagement = () => {
                                 </TableRow>
                             </TableHeader>
                                 <TableBody>
-                                    {patients?.data?.map((patient) => (
+                                    {patients?.data?.slice(0, 5).map((patient) => (
                                         <TableRow key={patient.user_id}>
                                             <TableCell>
                                                 <div className="flex items-center">
@@ -470,187 +475,43 @@ const PatientManagement = () => {
                                 </TabsList>
 
                                 <TabsContent value="appointments" className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <h3 className="text-lg font-semibold">Appointments</h3>
-                                        <Button onClick={() => openAppointmentDialog()}>
-                                            <Plus className="h-4 w-4 mr-2" />
-                                            Add Appointment
-                                        </Button>
-                                    </div>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Date & Time</TableHead>
-                                                <TableHead>Reason</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead>Notes</TableHead>
-                                                <TableHead>Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {getPatientAppointments(selectedPatient.id).map((appointment) => (
-                                                <TableRow key={appointment.id}>
-                                                    <TableCell>
-                                                        <div>
-                                                            <p className="font-medium">{formatDate(appointment.date)}</p>
-                                                            <p className="text-sm text-gray-500">{appointment.time}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>{appointment.reason}</TableCell>
-                                                    <TableCell>
-                                                        <Badge variant="outline">{appointment.status}</Badge>
-                                                    </TableCell>
-                                                    <TableCell className="max-w-xs truncate">{appointment.notes}</TableCell>
-                                                    <TableCell>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => openAppointmentDialog(appointment)}
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                                    <AppointmentForm
+                                        openAppointmentDialog ={openAppointmentDialog}
+                                        recentAppointments = {recentAppointments}
+                                        formatDate = {formatDate}
+                                        isAppointmentDialogOpen = {isAppointmentDialogOpen}
+                                        setIsAppointmentDialogOpen = {setIsAppointmentDialogOpen}
+                                        editingAppointment = {editingAppointment}
+                                        selectedPatient = {selectedPatient}
+                                        selectedAppointment = {selectedAppointment}
+                                        handleSaveAppointment = {handleSaveAppointment}
+                                        isLoading={appointmentsLoading}
+                                        page={page}
+                                        setPage={setPage}
+                                    />
                                 </TabsContent>
 
                                 <TabsContent value="records" className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <h3 className="text-lg font-semibold">Medical Records</h3>
-                                        <Button onClick={() => openRecordDialog()}>
-                                            <Plus className="h-4 w-4 mr-2" />
-                                            Add Record
-                                        </Button>
-                                    </div>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Title</TableHead>
-                                                <TableHead>Type</TableHead>
-                                                <TableHead>Date</TableHead>
-                                                <TableHead>Content</TableHead>
-                                                <TableHead>Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {getPatientRecords(selectedPatient.id).map((record) => (
-                                                <TableRow key={record.id}>
-                                                    <TableCell className="font-medium">{record.title}</TableCell>
-                                                    <TableCell>
-                                                        <Badge variant="outline">{record.record_type}</Badge>
-                                                    </TableCell>
-                                                    <TableCell>{formatDate(record.record_date)}</TableCell>
-                                                    <TableCell className="max-w-xs truncate">{record.content}</TableCell>
-                                                    <TableCell>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => openRecordDialog(record)}
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                                    <PatientRecords
+                                        openRecordDialog={openRecordDialog}
+                                        getPatientRecords={getPatientRecords}
+                                        selectedPatient={selectedPatient}
+                                        formatDate={formatDate}
+                                        isRecordDialogOpen={isRecordDialogOpen}
+                                        setIsRecordDialogOpen={setIsRecordDialogOpen}
+                                        editingRecord={editingRecord}
+                                        handleSaveRecord={handleSaveRecord}
+                                    />
                                 </TabsContent>
 
                                 <TabsContent value="profile" className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {/* Basic Patient Info (Read-only) */}
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-600">Full Name</label>
-                                                <p className="font-semibold">{selectedPatient.full_name}</p>
-                                            </div>
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-600">Patient ID</label>
-                                                <p className="text-sm text-gray-600">{selectedPatient.patient_id || selectedPatient.id}</p>
-                                            </div>
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-600">Member Since</label>
-                                                <p>{formatDate(selectedPatient.created_at)}</p>
-                                            </div>
-                                        </div>
-
-                                        {/* Contact & Last Visit */}
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-600">Email</label>
-                                                <div className="flex items-center gap-2">
-                                                    <Mail className="w-4 h-4" />
-                                                    <p>{selectedPatient.email}</p>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-600">Phone</label>
-                                                {userRole === "super_admin" ? (
-                                                    <Input
-                                                        value={selectedPatient.phone || ""}
-                                                        onChange={(e) => setSelectedPatient({ ...selectedPatient, phone: e.target.value })}
-                                                    />
-                                                ) : (
-                                                    <div className="flex items-center gap-2">
-                                                        <Phone className="w-4 h-4" />
-                                                        <p>{selectedPatient.phone || "Not provided"}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-600">Last Visit</label>
-                                                <p>{selectedPatient.last_visit ? formatDate(selectedPatient.last_visit) : "No visits yet"}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Editable Profile Fields for Super Admins */}
-                                    {userRole === "super_admin" && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
-                                            <Label htmlFor="address">Address</Label>
-                                            <Input id="address" value={selectedPatient.address || ""} onChange={(e) => setSelectedPatient({ ...selectedPatient, address: e.target.value })} />
-                                            <Label htmlFor="dob">Date of Birth</Label>
-                                            <Input id="dob" type="date" value={selectedPatient.dob || ""} onChange={(e) => setSelectedPatient({ ...selectedPatient, date_of_birth: e.target.value })} />
-                                            <Label htmlFor="nok">Next of Kin</Label>
-                                            <Input id="nok" value={selectedPatient.nok || ""} onChange={(e) => setSelectedPatient({ ...selectedPatient, next_of_kin: e.target.value })} />
-                                            <Label htmlFor="nok_phone">Next of Kin Phone</Label>
-                                            <Input id="nok_phone" value={selectedPatient.nok_phone || ""} onChange={(e) => setSelectedPatient({ ...selectedPatient, next_of_kin_phone: e.target.value })} />
-                                            <Label htmlFor="gender">Gender</Label>
-                                            <Select value={selectedPatient.gender || ""} onValueChange={(e) => setSelectedPatient({ ...selectedPatient, gender: e })} >
-                                                <SelectTrigger>
-                                                    <SelectValue />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                    <SelectItem value="male">Male</SelectItem>
-                                                    <SelectItem value="female">Female</SelectItem>
-                                                  </SelectContent>
-                                                </Select>
-                                            <Label htmlFor="blood_type">Blood Type</Label>
-                                            <Select value={selectedPatient.blood_type || ""} onValueChange={(e) => setSelectedPatient({ ...selectedPatient, blood_type: e })} >
-                                                <SelectTrigger>
-                                                    <SelectValue />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                    <SelectItem value="A+">A+</SelectItem>
-                                                    <SelectItem value="A-">A-</SelectItem>
-                                                    <SelectItem value="B+">B+</SelectItem>
-                                                    <SelectItem value="O+">O+</SelectItem>
-                                                    <SelectItem value="O-">O-</SelectItem>
-                                                    <SelectItem value="AB+-">AB+</SelectItem>
-                                                  </SelectContent>
-                                                </Select>
-                                            <Label htmlFor="allergies">Allergies</Label>
-                                            <Textarea id="allergies" value={selectedPatient.allergies || ""} onChange={(e) => setSelectedPatient({ ...selectedPatient, allergies: e.target.value })} />
-                                            <Label htmlFor="medical_conditions">Medical Conditions</Label>
-                                            <Textarea id="medical_conditions" value={selectedPatient.medical_conditions || ""} onChange={(e) => setSelectedPatient({ ...selectedPatient, medical_conditions: e.target.value })} />
-
-                                            <div className="col-span-full text-right">
-                                                <Button onClick={handleSaveProfile}>Save Changes</Button>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <PatientProfileForm
+                                        selectedPatient={selectedPatient}
+                                        phone={user.phone}
+                                        userRole={userRole}
+                                        onSave={handleSaveProfile} // <- this function gets the profileForm state
+                                        formatDate={formatDate}
+                                    />
                                 </TabsContent>
                             </Tabs>
                         </CardContent>
@@ -710,159 +571,10 @@ const PatientManagement = () => {
                 </Dialog>
 
                 {/* Medical Record Dialog */}
-                <Dialog open={isRecordDialogOpen} onOpenChange={setIsRecordDialogOpen}>
-                    <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                            <DialogTitle>
-                                {editingRecord ? 'Edit Medical Record' : 'Add Medical Record'}
-                                {selectedPatient && ` - ${selectedPatient.full_name}`}
-                            </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            <div>
-                                <Label htmlFor="record_title">Title*</Label>
-                                <Input
-                                    id="record_title"
-                                    value={recordForm.title}
-                                    onChange={(e) => setRecordForm(prev => ({ ...prev, title: e.target.value }))}
-                                    placeholder="Enter record title"
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Label htmlFor="record_type">Type*</Label>
-                                    <Select
-                                        value={recordForm.record_type}
-                                        onValueChange={(value) => setRecordForm(prev => ({ ...prev, record_type: value }))}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="examination">Examination</SelectItem>
-                                            <SelectItem value="lab_result">Lab Result</SelectItem>
-                                            <SelectItem value="diagnosis">Diagnosis</SelectItem>
-                                            <SelectItem value="treatment">Treatment</SelectItem>
-                                            <SelectItem value="prescription">Prescription</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Label htmlFor="record_date">Date*</Label>
-                                    <Input
-                                        id="record_date"
-                                        type="date"
-                                        value={recordForm.record_date}
-                                        onChange={(e) => setRecordForm(prev => ({ ...prev, record_date: e.target.value }))}
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <Label htmlFor="record_content">Content*</Label>
-                                <Textarea
-                                    id="record_content"
-                                    value={recordForm.content}
-                                    onChange={(e) => setRecordForm(prev => ({ ...prev, content: e.target.value }))}
-                                    placeholder="Enter detailed record content..."
-                                    rows={6}
-                                />
-                            </div>
-                            <div className="flex space-x-2">
-                                <Button onClick={handleSaveRecord} className="flex-1">
-                                    {editingRecord ? 'Update' : 'Create'} Record
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setIsRecordDialogOpen(false)}
-                                >
-                                    Cancel
-                                </Button>
-                            </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+
 
                 {/* Appointment Dialog */}
-                <Dialog open={isAppointmentDialogOpen} onOpenChange={setIsAppointmentDialogOpen}>
-                    <DialogContent className="max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>
-                                {editingAppointment ? 'Edit Appointment' : 'Add Appointment'}
-                                {selectedPatient && ` - ${selectedPatient.full_name}`}
-                            </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Label htmlFor="apt_date">Date*</Label>
-                                    <Input
-                                        id="apt_date"
-                                        type="date"
-                                        value={appointmentForm.date}
-                                        onChange={(e) => setAppointmentForm(prev => ({ ...prev, date: e.target.value }))}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="apt_time">Time*</Label>
-                                    <Input
-                                        id="apt_time"
-                                        type="time"
-                                        value={appointmentForm.time}
-                                        onChange={(e) => setAppointmentForm(prev => ({ ...prev, time: e.target.value }))}
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <Label htmlFor="apt_reason">Reason</Label>
-                                <Input
-                                    id="apt_reason"
-                                    value={appointmentForm.reason}
-                                    onChange={(e) => setAppointmentForm(prev => ({ ...prev, reason: e.target.value }))}
-                                    placeholder="Reason for visit"
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="apt_status">Status</Label>
-                                <Select
-                                    value={appointmentForm.status}
-                                    onValueChange={(value) => setAppointmentForm(prev => ({ ...prev, status: value }))}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="scheduled">Scheduled</SelectItem>
-                                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                                        <SelectItem value="pending">Pending</SelectItem>
-                                        <SelectItem value="completed">Completed</SelectItem>
-                                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <Label htmlFor="apt_notes">Notes</Label>
-                                <Textarea
-                                    id="apt_notes"
-                                    value={appointmentForm.notes}
-                                    onChange={(e) => setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))}
-                                    placeholder="Additional notes..."
-                                    rows={3}
-                                />
-                            </div>
-                            <div className="flex space-x-2">
-                                <Button onClick={handleSaveAppointment} className="flex-1">
-                                    {editingAppointment ? 'Update' : 'Create'} Appointment
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setIsAppointmentDialogOpen(false)}
-                                >
-                                    Cancel
-                                </Button>
-                            </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+
             </div>
         </AdminLayout>
     );

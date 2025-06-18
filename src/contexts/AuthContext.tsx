@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import {toast} from "@/hooks/use-toast.ts";
 
 interface User {
   id: string;
   fullName: string;
   email: string;
+  phone: string;
   created_at: string;
 }
 
@@ -24,6 +26,12 @@ interface AuthContextType {
   ) => Promise<{ error: AuthError }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError }>;
   signOut: () => Promise<void>;
+  authFetch: (url: string, options) => Promise<{
+    data: any;
+    limit?: number;
+    page?: number;
+    success: boolean;
+    total?: number; }>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -99,6 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userData = {
         id: data.id || 'unknown',
         fullName: data.fullName,
+        phone: data.phone,
         email,
         created_at: new Date().toISOString(),
       };
@@ -122,7 +131,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setUserRole(null);
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('token');
   };
+
+  // utils/authFetch.ts
+  const authFetch = async (
+      url: string,
+      options: RequestInit = {}
+  ) => {
+    const token = localStorage.getItem("token");
+
+    const headers = {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    };
+
+    const response : Response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      await signOut();
+      window.location.href = "/";
+      toast({
+        title: "Failed to update appointment",
+        description: "Appointment update failed!.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Something went wrong");
+    }
+
+    return response.json(); // or response.text() if needed
+  }
 
   const value = {
     user,
@@ -131,6 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signIn,
     signOut,
+    authFetch,
   };
 
   // ✅ This return is required
