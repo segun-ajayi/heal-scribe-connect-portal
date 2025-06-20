@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input.tsx";
+import { Label } from "@/components/ui/label.tsx";
+import { Textarea } from "@/components/ui/textarea.tsx";
 import {
     Select,
     SelectTrigger,
     SelectContent,
     SelectItem,
     SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui/select.tsx";
+import { Button } from "@/components/ui/button.tsx";
 
 const PatientProfileForm = ({ selectedPatient, phone, userRole, onSave, formatDate }) => {
     const [profileForm, setProfileForm] = useState(null);

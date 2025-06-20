@@ -26,12 +26,14 @@ interface AuthContextType {
   ) => Promise<{ error: AuthError }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError }>;
   signOut: () => Promise<void>;
-  authFetch: (url: string, options) => Promise<{
-    data: any;
+  authFetch<T> (url: string, options: RequestInit): Promise<{
+    data: T;
     limit?: number;
     page?: number;
     success: boolean;
-    total?: number; }>;
+    total?: number;
+  }>;
+
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);

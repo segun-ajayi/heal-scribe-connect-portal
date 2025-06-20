@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useNavigate } from "react-router-dom";
 import {Button} from "@/components/ui/button.tsx";
+import {PaginationControls} from "@/components/ui/PaginationControls.tsx";
 
 
 
@@ -15,17 +16,22 @@ const AdminDashboard = () => {
   const { user, userRole } = useAuth();
   const [page, setPage] = useState(1);
   const { data: stats, isLoading: statsLoading, isError } = useAdminStats();
-  const { data: recentAppointments = [], isLoading: appointmentsLoading } = useRecentAppointments(page);
-  const { data: recentPosts = [], isLoading: postsLoading } = useRecentBlogPosts();
+  const { data: recentAppointments = undefined, isLoading: appointmentsLoading } = useRecentAppointments(page);
+  const { data: recentPosts = undefined, isLoading: postsLoading } = useRecentBlogPosts();
   const navigate = useNavigate();
 
-  console.log('Popo: ', recentPosts);
 
   useEffect(() => {
     if (!["admin", "super_admin"].includes(userRole)) {
       navigate("/"); // Redirect non-admins to home
     }
   }, [userRole]);
+
+  console.log('Rere run: ', recentAppointments, stats);
+
+  const total: number = recentAppointments?.total;
+  const limit: number = recentAppointments?.limit;
+  const totalPages: number = Math.ceil(total / limit);
 
 
   const formatTime = (timeString: string) => {
@@ -47,7 +53,7 @@ const AdminDashboard = () => {
   const statsData = [
     {
       title: 'Total Patients',
-      value: statsLoading ? '...' : stats?.data?.totalPatients?.toString() || '0',
+      value: statsLoading ? '...' : stats?.data?.totalAppointments?.toString() || '0',
       change: '+12%',
       icon: Users,
       color: 'text-blue-600'
@@ -137,7 +143,7 @@ const AdminDashboard = () => {
                           <div key={appointment.id} className="border rounded-lg p-4 flex justify-between">
                             <div>
                               <h3 className="font-semibold">{appointment.reason || "Appointment"}</h3>
-                              <p className="text-sm text-gray-500">{appointment.time}</p>
+                              <p className="text-sm text-gray-500">{appointment.preferred_time}</p>
                             </div>
                             <Badge className="bg-blue-100 text-blue-800">{appointment.status || "scheduled"}</Badge>
                           </div>
@@ -145,12 +151,12 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* Pagination Controls */}
-                    <div className="flex justify-between mt-4">
-                      <Button onClick={() => setPage(prev => Math.max(1, prev - 1))} disabled={page === 1}>
-                        Previous
-                      </Button>
-                      <Button onClick={() => setPage(prev => prev + 1)}>Next</Button>
-                    </div>
+                    <PaginationControls
+                        page={page}
+                        totalPages={totalPages}
+                        onPageChange={(newPage) => setPage(newPage)}
+                        isLoading={appointmentsLoading}
+                    />
                   </div>
               )}
             </CardContent>

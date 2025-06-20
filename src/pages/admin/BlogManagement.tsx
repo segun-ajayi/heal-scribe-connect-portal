@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Calendar } from 'lucide-react';
+import {BlogForm} from "@/components/admin/forms/BlogForm.tsx";
 
 const BlogManagement = () => {
   const [posts, setPosts] = useState([
@@ -40,6 +41,14 @@ const BlogManagement = () => {
     status: 'draft',
     scheduledFor: ''
   });
+
+  const formatDate = (dateStr: string) => {
+    return new Intl.DateTimeFormat("en-NG", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(dateStr));
+  };
+
 
   const { toast } = useToast();
 
@@ -118,82 +127,20 @@ const BlogManagement = () => {
         </div>
 
         {isCreating && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{editingPost ? 'Edit Post' : 'Create New Post'}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="excerpt">Excerpt</Label>
-                  <Textarea
-                    id="excerpt"
-                    value={formData.excerpt}
-                    onChange={(e) => setFormData({...formData, excerpt: e.target.value})}
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="content">Content</Label>
-                  <Textarea
-                    id="content"
-                    value={formData.content}
-                    onChange={(e) => setFormData({...formData, content: e.target.value})}
-                    rows={10}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="status">Status</Label>
-                    <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="published">Published</SelectItem>
-                        <SelectItem value="scheduled">Scheduled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {formData.status === 'scheduled' && (
-                    <div>
-                      <Label htmlFor="scheduledFor">Schedule For</Label>
-                      <Input
-                        id="scheduledFor"
-                        type="datetime-local"
-                        value={formData.scheduledFor}
-                        onChange={(e) => setFormData({...formData, scheduledFor: e.target.value})}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button type="submit">
-                    {editingPost ? 'Update Post' : 'Create Post'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>{editingPost ? "Edit Post" : "Create New Post"}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BlogForm
+                    formData={formData}
+                    onChange={setFormData}
+                    onSubmit={handleSubmit}
+                    onCancel={resetForm}
+                    isEditing={!!editingPost}
+                />
+              </CardContent>
+            </Card>
         )}
 
         <div className="grid gap-6">
@@ -215,13 +162,13 @@ const BlogManagement = () => {
                       {post.publishedAt && (
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          Published: {post.publishedAt}
+                          Published: {formatDate(post.publishedAt)}
                         </span>
                       )}
                       {post.scheduledFor && (
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          Scheduled: {post.scheduledFor}
+                          Scheduled: {formatDate(post.scheduledFor)}
                         </span>
                       )}
                     </div>

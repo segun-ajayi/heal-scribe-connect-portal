@@ -8,32 +8,22 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     User,
     Edit,
     Plus,
-    Calendar,
-    FileText,
     Search,
     Phone,
     Mail,
-    Clock,
-    Trash2,
     Eye
 } from 'lucide-react';
 import {useAdminPatientAppointments, useAdminPatients, useRecentAppointments} from "@/hooks/useAdminData.ts";
 import { useAuth } from '@/contexts/AuthContext';
-import PatientProfileForm from "@/components/admin/PatientProfileForm.tsx";
-import AppointmentForm from "@/components/admin/AppointmentForm.tsx";
+import PatientProfileForm from "@/components/admin/forms/PatientProfileForm.tsx";
+import AppointmentForm from "@/components/admin/forms/AppointmentForm.tsx";
 import PatientRecords from "@/components/admin/PatientRecords.tsx";
-
-function handleSavePatient() {
-
-}
 
 
 const PatientManagement = () => {

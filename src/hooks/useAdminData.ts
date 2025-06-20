@@ -50,10 +50,54 @@ interface returnData {
   total: number;
 }
 
+interface Appointment {
+  id: number;
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  patient_id: string;
+  appointment_type: string;
+  preferred_date: string;
+  preferred_time: string;
+  reason: string;
+  medical_history: string;
+  current_medications: string;
+  insurance_provider: string;
+  emergency_contact: string;
+  emergency_phone: string;
+  notes: string;
+  priority: string;
+  status: string;
+  created_at: string;
+}
+
+
+interface PaginatedAppointmentResponse {
+  data: Appointment[];
+  page?: number;
+  limit?: number;
+  total?: number;
+  success: boolean;
+}
+
+interface statsData {
+  totalAppointments?: number;
+  todayAppointments?: number;
+  blogPosts?: number;
+  publications?: number;
+  waitingList?: number;
+}
+
+interface stats {
+  data: statsData;
+  success: boolean;
+}
+
+
 export const useAdminStats = () => {
   const { user, userRole, authFetch } = useAuth();
 
-  return useQuery({
+  return useQuery<stats>({
     queryKey: ["admin-stats"],
     queryFn: () =>
         authFetch(`${import.meta.env.VITE_API_URL}/api/admin/stats`, {}),
@@ -64,7 +108,7 @@ export const useAdminStats = () => {
 export const useRecentAppointments = (page = 1, scope: string = "future") => {
   const { user, userRole, authFetch } = useAuth();
 
-  return useQuery({
+  return useQuery<PaginatedAppointmentResponse>({
     queryKey: ["recent-appointments", page, scope],
     queryFn: () =>
         authFetch(

@@ -8,7 +8,8 @@ import {Label} from "@/components/ui/label.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
-import PatientProfileForm from "@/components/admin/PatientProfileForm.tsx";
+import PatientProfileForm from "@/components/admin/forms/PatientProfileForm.tsx";
+import {PaginationControls} from "@/components/ui/PaginationControls.tsx";
 
 
 const AppointmentForm = ({ openAppointmentDialog, recentAppointments, formatDate, isAppointmentDialogOpen, setIsAppointmentDialogOpen,
@@ -36,7 +37,7 @@ const AppointmentForm = ({ openAppointmentDialog, recentAppointments, formatDate
     }, [selectedPatient]);
 
     if (!appointmentForm) return null;
-    console.log('Recent: ', recentAppointments);
+
     const total = recentAppointments?.totalAppointments;
     const limit = recentAppointments?.limit;
     const totalPages = Math.ceil(total / limit);
@@ -93,33 +94,13 @@ const AppointmentForm = ({ openAppointmentDialog, recentAppointments, formatDate
                     <TableFooter>
                         <tr>
                             <td colSpan={5}>
-                                <div className="flex items-center justify-center gap-4 mt-4">
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        disabled={page === 1}
-                                        onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                                        className="flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <ChevronLeft className="w-4 h-4 mr-1" />
-                                        Previous
-                                    </Button>
+                                <PaginationControls
+                                    page={page}
+                                    totalPages={totalPages}
+                                    onPageChange={(newPage) => setPage(newPage)}
+                                    isLoading={isLoading}
+                                />
 
-                                    <span className="text-sm text-gray-600 whitespace-nowrap">
-            Page <span className="font-semibold">{page}</span> of <span className="font-semibold">{totalPages}</span>
-          </span>
-
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        disabled={page >= totalPages}
-                                        onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                                        className="flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        Next
-                                        <ChevronRight className="w-4 h-4 ml-1" />
-                                    </Button>
-                                </div>
                             </td>
                         </tr>
                     </TableFooter>
