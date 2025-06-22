@@ -27,6 +27,8 @@ import ProtectedRoute from "@/components/ProtectedRoute.tsx";
 import Unauthorized from "@/pages/Unauthorized.tsx";
 import ContentManagement from "./pages/admin/ContentManagement";
 import PatientManagement from "@/pages/admin/PatientManagement.tsx";
+import { EditModeProvider } from './contexts/EditModeContext';
+import { EditModeToggle} from "@/components/ui/EditModeToggle.tsx";
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -129,6 +131,8 @@ const AppContent: React.FC = () => {
             </ProtectedRoute>
           } />
         </Routes>
+      <EditModeToggle />
+
       </main>
       {!isAdminRoute && <Footer />}
     </div>
@@ -143,7 +147,9 @@ const App: React.FC = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <AppContent />
+              <EditModeProvider>
+                  <AppContent />
+              </EditModeProvider>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

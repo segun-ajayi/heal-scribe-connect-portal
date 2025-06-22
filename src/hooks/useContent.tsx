@@ -114,7 +114,7 @@ export const useContent = () => {
         mutationFn: (item: ContentItem) =>
             authFetch(`${baseUrl}/api/admin/content`, {
                 method: 'POST',
-                body: JSON.stringify(item),
+                body: JSON.stringify([item]),
             }),
         onSuccess: (_, item) => {
             queryClient.setQueryData<ContentItem[]>(['content'], prev => [...(prev ?? []), item]);

@@ -138,7 +138,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const authFetch = async (
       url: string,
-      options: RequestInit = {}
+      options: RequestInit = {},
+      requireAuth = true,
   ) => {
     const token = localStorage.getItem("token");
 
@@ -153,16 +154,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       headers,
     });
 
-    if (response.status === 401 || response.status === 403) {
+    if ((response.status === 401 || response.status === 403) && requireAuth && user) {
       await signOut();
-      window.location.href = "/";
+      window.location.href = '/';
       toast({
-        title: "Failed to update appointment",
-        description: "Appointment update failed!.",
-        variant: "destructive"
+        title: 'Session expired',
+        description: 'Please log in again.',
+        variant: 'destructive',
       });
       return;
     }
+
 
     if (!response.ok) {
       const errorText = await response.text();

@@ -13,6 +13,9 @@ import {
 import {Button} from "@/components/ui/button.tsx";
 import {Calendar, LogOut, Settings, User} from "lucide-react";
 
+import { useEditMode } from '@/contexts/EditModeContext';
+import { Pencil } from 'lucide-react';
+
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -21,6 +24,20 @@ interface AdminLayoutProps {
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const { user, userRole, isLoading, signOut } = useAuth();
   const navigate = useNavigate();
+
+  const EditToggle = () => {
+    const { isEditMode, toggleEditMode } = useEditMode();
+
+    return (
+        <button
+            onClick={toggleEditMode}
+            className="fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded shadow-lg hover:bg-blue-700 z-50"
+        >
+          <Pencil className="inline-block w-4 h-4 mr-2" />
+          {isEditMode ? 'Exit Edit Mode' : 'Edit Page'}
+        </button>
+    );
+  };
 
   if (isLoading) {
     return (
