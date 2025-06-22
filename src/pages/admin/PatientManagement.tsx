@@ -4,7 +4,6 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -67,7 +66,7 @@ const PatientManagement = () => {
     const [filterStatus, setFilterStatus] = useState("");
 
     const { data: patients, isLoading, isError } = useAdminPatients(searchQuery, filterStatus);
-
+    console.log(patients);
     const { user, userRole, authFetch } = useAuth();
 
 
@@ -229,19 +228,24 @@ const PatientManagement = () => {
             });
             return;
         }
+        console.log(editingAppointment);
 
         const odo = {
             patient_id: selectedPatient.patient_id,
-            appointment_id: editingAppointment.id,
             ...appointmentForm
         };
 
         if(editingAppointment) {
+            const odoEditting = {
+                patient_id: selectedPatient.patient_id,
+                appointment_id: editingAppointment.id,
+                ...appointmentForm
+            };
             try {
                 try {
                     await authFetch(`${import.meta.env.VITE_API_URL}/api/admin/appointments/`, {
                         method: "PUT",
-                        body: JSON.stringify(odo)
+                        body: JSON.stringify(odoEditting)
                     });
 
                     toast({

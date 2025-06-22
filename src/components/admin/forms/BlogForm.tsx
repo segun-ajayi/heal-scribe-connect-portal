@@ -17,10 +17,12 @@ import "react-quill/dist/quill.snow.css";
 
 interface BlogFormProps {
     formData: {
+        author: string;
         title: string;
         content: string;
         excerpt: string;
         status: string;
+        category: string;
         scheduledFor: string;
     };
     onChange: (data: BlogFormProps["formData"]) => void;
@@ -42,6 +44,15 @@ export const BlogForm = ({
 
     return (
         <form onSubmit={onSubmit} className="space-y-4">
+            <div>
+                <Label htmlFor="title">Author</Label>
+                <Input
+                    id="title"
+                    value={formData.author}
+                    onChange={(e) => onChange({ ...formData, author: e.target.value })}
+                    required
+                />
+            </div>
             <div>
                 <Label htmlFor="title">Title</Label>
                 <Input
@@ -81,6 +92,22 @@ export const BlogForm = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <Label htmlFor="status">Category</Label>
+                    <Select
+                        value={formData.category}
+                        onValueChange={(value) => onChange({ ...formData, category: value })}
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="published">Published</SelectItem>
+                            <SelectItem value="scheduled">Scheduled</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
                 <div>
                     <Label htmlFor="status">Status</Label>
                     <Select

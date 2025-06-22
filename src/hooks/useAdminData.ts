@@ -1,83 +1,36 @@
 
-import { useQuery } from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Mock data
-const mockStats = {
-  totalPatients: 156,
-  todayAppointments: 8,
-  blogPosts: 12,
-  publications: 24,
-  waitingList: 5
-};
-
-const mockAppointments = [
-  {
-    id: 1,
-    patient_id: 'patient-1',
-    time: '09:00:00',
-    date: new Date().toISOString().split('T')[0],
-    reason: 'Annual Checkup',
-    status: 'scheduled'
-  },
-  {
-    id: 2,
-    patient_id: 'patient-2', 
-    time: '10:30:00',
-    date: new Date().toISOString().split('T')[0],
-    reason: 'Follow-up',
-    status: 'confirmed'
-  }
-];
-
-const mockBlogPosts = [
-  {
-    id: 1,
-    title: 'Understanding Heart Health',
-    created_at: '2024-01-15',
-    status: 'published'
-  },
-  {
-    id: 2,
-    title: 'Managing Diabetes',
-    created_at: '2024-01-10', 
-    status: 'draft'
-  }
-];
-interface returnData {
-  data: object[];
-  limit: number;
-  total: number;
-}
 
 interface Appointment {
-  id: number;
+  id?: number;
   full_name?: string;
   email?: string;
   phone?: string;
-  patient_id: string;
-  appointment_type: string;
-  preferred_date: string;
-  preferred_time: string;
-  reason: string;
-  medical_history: string;
-  current_medications: string;
-  insurance_provider: string;
-  emergency_contact: string;
-  emergency_phone: string;
-  notes: string;
-  priority: string;
-  status: string;
-  created_at: string;
+  patient_id?: string;
+  appointment_type?: string;
+  preferred_date?: string;
+  preferred_time?: string;
+  reason?: string;
+  medical_history?: string;
+  current_medications?: string;
+  insurance_provider?: string;
+  emergency_contact?: string;
+  emergency_phone?: string;
+  notes?: string;
+  priority?: string;
+  status?: string;
+  created_at?: string;
 }
 
 
 interface PaginatedAppointmentResponse {
-  data: Appointment[];
+  data?: Appointment[];
   page?: number;
   limit?: number;
   total?: number;
-  success: boolean;
+  success?: boolean;
 }
 
 interface statsData {
@@ -89,9 +42,98 @@ interface statsData {
 }
 
 interface stats {
-  data: statsData;
-  success: boolean;
+  data?: statsData;
+  success?: boolean;
 }
+
+interface patientsData {
+  data: {
+    address?: string;
+    allergies?: string;
+    blood_type?: string;
+    dob?: string;
+    email?: string;
+    full_name?: string;
+    gender?: string;
+    join_date?: string;
+    last_visit?: string;
+    medical_conditions?: string;
+    nok?: string;
+    nok_phone?: string;
+    patient_id?: string;
+    phone?: string;
+    role?: string;
+    user_id?: number;
+  }[];
+  limit?: number;
+  page?: number;
+  totalPatients?: number;
+  success?: boolean;
+}
+
+interface blogData {
+  data: {
+    id?: number;
+    title?: string;
+    excerpt?: string;
+    content?: string;
+    author?: string;
+    date?: string;
+    readTime?: number;
+    category?: string;
+    currentRating?: string;
+    totalRatings?: string;
+    comments?: number;
+    status?: string;
+    scheduledFor?: string;
+    publishedAt?: string;
+  }[];
+  limit?: number;
+  page?: number;
+  total?: number;
+  success?: boolean;
+}
+
+interface publications {
+  data?: {
+    id?: number;
+    title?: string;
+    abstract?: string;
+    content?: string;
+    authors?: string;
+    journal?: string;
+    url?: string;
+    doi?: string;
+    keywords?: string;
+    category_id?: number;
+    category?: string;
+    published_at?: string;
+    created_at?: string;
+    updated_at?: string;
+  }[];
+  categories?: {
+    id?: string;
+    name?: string;
+    slug?: string;
+    type?: string;
+  }[];
+  limit?: number;
+  page?: number;
+  total?: number;
+  success?: boolean;
+}
+
+interface ContentItem {
+  id: string;
+  type: 'text' | 'image' | 'link' | 'button';
+  page: string;
+  section: string;
+  label: string;
+  value: string;
+  alt?: string;
+  href?: string;
+}
+
 
 
 export const useAdminStats = () => {
@@ -140,14 +182,26 @@ export const useAdminPatientAppointments = (
   });
 };
 
-export const useRecentBlogPosts = (page = 1) => {
+export const useRecentBlogPosts = (page = 1, category: string = 'all', author: string = 'all') => {
   const { user, userRole, authFetch } = useAuth();
   
-  return useQuery({
-    queryKey: ['recent-blog-posts', page],
+  return useQuery<blogData>({
+    queryKey: ['recent-blog-posts', page, category, author],
     queryFn: () =>
         authFetch(
-            `${import.meta.env.VITE_API_URL}/api/admin/blogs?page=${page}`, {}),
+            `${import.meta.env.VITE_API_URL}/api/admin/blogs?page=${page}&category=${category}&author=${author}`, {}),
+    enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
+  });
+};
+
+export const useMyPublications = (page = 1, category: string = 'all', refreshKey:number = 0) => {
+  const { user, userRole, authFetch } = useAuth();
+
+  return useQuery<publications>({
+    queryKey: ['my-publications', page, category, refreshKey],
+    queryFn: () =>
+        authFetch(
+            `${import.meta.env.VITE_API_URL}/api/admin/publications?page=${page}&category=${category}`, {}),
     enabled: !!user && (userRole === 'admin' || userRole === 'super_admin')
   });
 };
@@ -155,10 +209,11 @@ export const useRecentBlogPosts = (page = 1) => {
 export const useAdminPatients = (searchQuery, filterStatus) => {
   const { user, userRole, authFetch } = useAuth();
 
-  return useQuery({
+  return useQuery<patientsData>({
     queryKey: ["admin-patients", searchQuery, filterStatus],
     queryFn: () => authFetch(`${import.meta.env.VITE_API_URL}/api/admin/patients?query=${searchQuery}&status=${filterStatus}`,
         {}),
     enabled: !!user && (userRole === "admin" || userRole === "super_admin"),
   });
 };
+

@@ -33,7 +33,6 @@ interface AuthContextType {
     success: boolean;
     total?: number;
   }>;
-
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -136,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('token');
   };
 
-  // utils/authFetch.ts
+
   const authFetch = async (
       url: string,
       options: RequestInit = {}

@@ -2,38 +2,28 @@ import React, { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, ExternalLink } from 'lucide-react';
+import {PublicationForm} from "@/components/admin/forms/PublicationForm.tsx";
+import {useMyPublications} from "@/hooks/useAdminData.ts";
+import {useAuth} from "@/contexts/AuthContext.tsx";
 
 const PublicationManagement = () => {
-  const [publications, setPublications] = useState([
-    {
-      id: 1,
-      title: "Advances in Cardiovascular Medicine",
-      journal: "Journal of Cardiology",
-      authors: ["Dr. Sarah Johnson", "Dr. Michael Chen"],
-      publicationDate: "2024-01-15",
-      doi: "10.1016/j.jacc.2024.01.001",
-      url: "https://example.com/publication1",
-      abstract: "This study examines the latest advances in cardiovascular treatment..."
-    },
-    {
-      id: 2,
-      title: "Diabetes Management in Modern Healthcare",
-      journal: "Diabetes Care",
-      authors: ["Dr. Sarah Johnson", "Dr. Lisa Wang"],
-      publicationDate: "2023-12-10",
-      doi: "10.2337/dc23-1234",
-      url: "https://example.com/publication2",
-      abstract: "A comprehensive review of diabetes management strategies..."
-    }
-  ]);
+  const [page, setPage] = useState(1);
+  const [categories, setCategories] = useState('all');
+  const { user, userRole, authFetch } = useAuth();
+
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refreshPublications = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
+  const { data: publications, isLoading: isLoading } = useMyPublications(page, categories, refreshKey);
+
 
   const [isCreating, setIsCreating] = useState(false);
-  const [editingPublication, setEditingPublication] = useState<any>(null);
+  const [editingPublication, setEditingPublication] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     journal: '',
@@ -41,35 +31,93 @@ const PublicationManagement = () => {
     publicationDate: '',
     doi: '',
     url: '',
+    category: '',
+    keywords: '',
     abstract: ''
   });
 
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const publicationData = {
-      ...formData,
-      authors: formData.authors.split(',').map(author => author.trim())
-    };
 
     if (editingPublication) {
-      setPublications(publications.map(pub => 
-        pub.id === editingPublication.id 
-          ? { ...pub, ...publicationData, id: editingPublication.id }
-          : pub
-      ));
+      formData['id'] = editingPublication.id;
+      try {
+        try {
+          await authFetch(
+              `${import.meta.env.VITE_API_URL}/api/admin/publications`,
+              {
+                method: "PUT",
+                body: JSON.stringify(formData),
+              }
+          );
+
+          toast({
+            title: "Publication updated successfully 👌",
+            description: "Publication has been successfully updated. 😁",
+          });
+
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500); // delays reload by 3 seconds
+
+        } catch (error) {
+          toast({
+            title: "Failed to update uublication",
+            description: error?.message || "Publication update failed!",
+            variant: "destructive",
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        toast({
+          title: "Error",
+          description: "An error occurred while updating!.",
+          variant: "destructive"
+        });
+      }
+
       toast({
         title: "Publication Updated",
         description: "Publication has been successfully updated."
       });
     } else {
-      const newPublication = {
-        id: Date.now(),
-        ...publicationData
-      };
-      setPublications([...publications, newPublication]);
+      try {
+        try {
+          await authFetch(
+              `${import.meta.env.VITE_API_URL}/api/admin/publications`,
+              {
+                method: "POST",
+                body: JSON.stringify(formData),
+              }
+          );
+
+          toast({
+            title: "Publication post created successfully",
+            description: "Publication post has been successfully created.",
+          });
+
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500); // delays reload by 3 seconds
+
+        } catch (error) {
+          toast({
+            title: "Failed to update publication",
+            description: error?.message || "Publication update failed!",
+            variant: "destructive",
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        toast({
+          title: "Error",
+          description: "An error occurred while creating blog. 😢😢😢.",
+          variant: "destructive"
+        });
+      }
+
       toast({
         title: "Publication Created",
         description: "New publication has been added successfully."
@@ -87,28 +135,36 @@ const PublicationManagement = () => {
       publicationDate: '',
       doi: '',
       url: '',
+      category: '',
+      keywords: '',
       abstract: ''
     });
     setIsCreating(false);
     setEditingPublication(null);
   };
 
-  const handleEdit = (publication: any) => {
+  const handleEdit = (publication) => {
     setEditingPublication(publication);
+
     setFormData({
       title: publication.title,
       journal: publication.journal,
-      authors: publication.authors.join(', '),
-      publicationDate: publication.publicationDate,
+      authors: publication.authors,
+      publicationDate: publication.published_at,
       doi: publication.doi,
       url: publication.url,
+      category: publication.category.toLowerCase()
+          .trim()
+          .replace(/[\s\W-]+/g, '-') // replace spaces and non-word characters with hyphen
+          .replace(/^-+|-+$/g, ''),
+      keywords: publication.keywords,
       abstract: publication.abstract
     });
     setIsCreating(true);
   };
 
   const handleDelete = (publicationId: number) => {
-    setPublications(publications.filter(pub => pub.id !== publicationId));
+
     toast({
       title: "Publication Deleted",
       description: "Publication has been deleted successfully."
@@ -132,96 +188,21 @@ const PublicationManagement = () => {
               <CardTitle>{editingPublication ? 'Edit Publication' : 'Add New Publication'}</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    required
+              <PublicationForm
+                  formData={formData}
+                  handleSubmit = {handleSubmit}
+                  setFormData = {setFormData}
+                  editingPublication = {editingPublication}
+                  resetForm = {resetForm}
+                  categories = {publications.categories}
+                  onCategoryAdded={refreshPublications}
                   />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="journal">Journal</Label>
-                    <Input
-                      id="journal"
-                      value={formData.journal}
-                      onChange={(e) => setFormData({...formData, journal: e.target.value})}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="publicationDate">Publication Date</Label>
-                    <Input
-                      id="publicationDate"
-                      type="date"
-                      value={formData.publicationDate}
-                      onChange={(e) => setFormData({...formData, publicationDate: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="authors">Authors (comma separated)</Label>
-                  <Input
-                    id="authors"
-                    value={formData.authors}
-                    onChange={(e) => setFormData({...formData, authors: e.target.value})}
-                    placeholder="Dr. Jane Doe, Dr. John Smith"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="doi">DOI</Label>
-                    <Input
-                      id="doi"
-                      value={formData.doi}
-                      onChange={(e) => setFormData({...formData, doi: e.target.value})}
-                      placeholder="10.1016/j.example.2024.01.001"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="url">URL</Label>
-                    <Input
-                      id="url"
-                      type="url"
-                      value={formData.url}
-                      onChange={(e) => setFormData({...formData, url: e.target.value})}
-                      placeholder="https://example.com/publication"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="abstract">Abstract</Label>
-                  <Textarea
-                    id="abstract"
-                    value={formData.abstract}
-                    onChange={(e) => setFormData({...formData, abstract: e.target.value})}
-                    rows={6}
-                  />
-                </div>
-
-                <div className="flex gap-2">
-                  <Button type="submit">
-                    {editingPublication ? 'Update Publication' : 'Add Publication'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancel
-                  </Button>
-                </div>
-              </form>
             </CardContent>
           </Card>
         )}
 
         <div className="grid gap-6">
-          {publications.map((publication) => (
+          {publications?.data?.map((publication) => (
             <Card key={publication.id}>
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
@@ -229,8 +210,8 @@ const PublicationManagement = () => {
                     <h3 className="text-xl font-semibold mb-2">{publication.title}</h3>
                     <div className="text-sm text-gray-600 mb-3">
                       <p><strong>Journal:</strong> {publication.journal}</p>
-                      <p><strong>Authors:</strong> {publication.authors.join(', ')}</p>
-                      <p><strong>Published:</strong> {publication.publicationDate}</p>
+                      <p><strong>Authors:</strong> {publication.authors}</p>
+                      <p><strong>Published:</strong> {publication.published_at}</p>
                       {publication.doi && <p><strong>DOI:</strong> {publication.doi}</p>}
                     </div>
                     {publication.abstract && (
