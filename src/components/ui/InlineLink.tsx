@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useContent } from '@/hooks/useContent';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEditMode } from '@/contexts/EditModeContext';
 import { Check, Loader2, Link2 } from 'lucide-react';
-import {Link} from "react-router-dom";
+import { Link } from 'react-router-dom';
 
 interface InlineLinkProps {
     id: string;
@@ -40,11 +40,18 @@ export const InlineLink = ({
     const [href, setHref] = useState(defaultHref);
     const [hasSaved, setHasSaved] = useState(false);
 
+    const editRef = useRef<HTMLDivElement>(null);
+
     const handleBlur = () => {
-        setEditing(false);
-        if (label !== defaultLabel) updateItem(id, 'value', label);
-        if (href !== defaultHref) updateItem(id, 'href', href);
-        if (label !== defaultLabel || href !== defaultHref) setHasSaved(true);
+        setTimeout(() => {
+            const active = document.activeElement as HTMLElement;
+            if (!editRef.current?.contains(active)) {
+                if (label !== defaultLabel) updateItem(id, 'value', label);
+                if (href !== defaultHref) updateItem(id, 'href', href);
+                if (label !== defaultLabel || href !== defaultHref) setHasSaved(true);
+                setEditing(false);
+            }
+        }, 0);
     };
 
     useEffect(() => {
@@ -58,7 +65,7 @@ export const InlineLink = ({
     const { startIcon, endIcon, children, ...restProps } = componentProps;
 
     const combinedChildren = (
-        <span className="inline-flex items-center">
+        <span className="inline-flex items-center gap-1">
       {startIcon}
             {label}
             {endIcon}
@@ -81,7 +88,7 @@ export const InlineLink = ({
     }
 
     return editing ? (
-        <div className="space-y-2">
+        <div ref={editRef} className="space-y-2">
             <div className="relative">
                 <input
                     className={`border px-2 py-1 rounded text-sm w-full bg-white text-gray-900 pr-6 ${className}`}

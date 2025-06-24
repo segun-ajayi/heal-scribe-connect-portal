@@ -97,8 +97,8 @@ const Index = () => {
                 <div className="w-80 h-80 bg-white/10 rounded-full flex items-center justify-center">
                   <InlineImage
                       id="home-hero-image"
-                      defaultSrc={getValue('home-1750604364419')}
-                      defaultAlt={getAlt('home-1750604364419') || 'Doctor illustration'}
+                      defaultSrc={getValue('home-1750765250682')}
+                      defaultAlt={getAlt('home-1750765250682') || 'Doctor illustration'}
                       imgClassName="w-100 h-100 object-contain rounded-full"
                   />
                 </div>
