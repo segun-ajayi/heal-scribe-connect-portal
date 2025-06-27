@@ -1,83 +1,102 @@
-import React, { useState, useEffect } from 'react';
-import { useContent } from '@/hooks/useContent';
-import { useAuth } from '@/contexts/AuthContext';
-import { Check, Loader2, ImageIcon } from 'lucide-react';
-import { useEditMode } from '@/contexts/EditModeContext';
+import React, { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEditMode } from "@/contexts/EditModeContext";
+import { useContent } from "@/hooks/useContent";
 
 interface InlineImageProps {
     id: string;
-    defaultSrc: string;
-    defaultAlt: string;
-    className?: string;
+    defaultSrc?: string;
+    defaultAlt?: string;
     imgClassName?: string;
+    wrapperClassName?: string;
 }
 
 export const InlineImage = ({
                                 id,
-                                defaultSrc,
-                                defaultAlt,
-                                className = '',
-                                imgClassName = 'w-full h-auto max-w-full rounded',
+                                defaultSrc = "",
+                                defaultAlt = "",
+                                imgClassName = "",
+                                wrapperClassName = "",
                             }: InlineImageProps) => {
-    const { updateItem, editedIds, isSaving } = useContent();
+    const { updateItem, createItem } = useContent();
     const { userRole } = useAuth();
-
     const { isEditMode } = useEditMode();
-    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
-    const canEdit = isEditMode && isAdmin;
 
-    const [src, setSrc] = useState(defaultSrc);
-    const [alt, setAlt] = useState(defaultAlt);
-    const [editing, setEditing] = useState(false);
-    const [hasSaved, setHasSaved] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const isAdmin = userRole === "admin" || userRole === "super_admin";
+    const canEdit = isAdmin && isEditMode;
 
-    const handleBlur = () => {
-        setEditing(false);
-        if (src !== defaultSrc) updateItem(id, 'value', src);
-        if (alt !== defaultAlt) updateItem(id, 'alt', alt);
-        if (src !== defaultSrc || alt !== defaultAlt) setHasSaved(true);
+    const isMissing = !defaultSrc;
+    const [previewUrl, setPreviewUrl] = useState<string>(defaultSrc || "");
+
+    const inferSectionFromId = (id: string) => id.split("-")[1] || "misc";
+    const inferPageFromId = (id: string) => id.split("-")[0] || "global";
+
+    const handleFileChange = async (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const form = new FormData();
+        form.append("file", file);
+
+        const token = localStorage.getItem("token");
+        const res = await fetch("https://your-worker.example.com/api/upload", {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            body: form,
+        });
+
+        const { url } = await res.json();
+        setPreviewUrl(url);
+
+        if (isMissing) {
+            createItem({
+                id,
+                type: "image",
+                value: url,
+                label: id,
+                section: inferSectionFromId(id),
+                page: inferPageFromId(id),
+                alt: defaultAlt || "Uploaded image",
+            });
+        } else {
+            updateItem(id, "value", url);
+        }
     };
 
-    useEffect(() => {
-        if (hasSaved) {
-            const timeout = setTimeout(() => setHasSaved(false), 1500);
-            return () => clearTimeout(timeout);
-        }
-    }, [hasSaved]);
+    if (!canEdit && !previewUrl) return null;
 
-    if (!canEdit) {
-        return <img src={defaultSrc} alt={defaultAlt} className={imgClassName} />;
-    }
-
-    return editing ? (
-        <div className={`space-y-2 ${className}`}>
-            <img src={src} alt={alt} className={`${imgClassName} border`} />
-            <input
-                className="border w-full px-2 py-1 text-sm rounded bg-white text-gray-900"
-                value={src}
-                onChange={(e) => setSrc(e.target.value)}
-                onBlur={handleBlur}
-                placeholder="Image URL"
-            />
-            <input
-                className="border w-full px-2 py-1 text-sm rounded bg-white text-gray-900"
-                value={alt}
-                onChange={(e) => setAlt(e.target.value)}
-                onBlur={handleBlur}
-                placeholder="Alt text (description)"
-            />
-            {isSaving && editedIds.has(id) ? (
-                <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-            ) : hasSaved ? (
-                <Check className="w-4 h-4 text-green-500" />
+    return (
+        <div
+            className={`relative group ${wrapperClassName}`}
+            onClick={() => canEdit && fileInputRef.current?.click()}
+        >
+            {previewUrl ? (
+                <img
+                    src={previewUrl}
+                    alt={defaultAlt || `InlineImage ${id}`}
+                    className={imgClassName}
+                />
+            ) : canEdit ? (
+                <div className="flex items-center justify-center border border-dashed border-gray-400 rounded p-4 text-center text-sm text-gray-600 cursor-pointer">
+                    Click to upload image for <code>{id}</code>
+                </div>
             ) : null}
-        </div>
-    ) : (
-        <div className="relative group" onDoubleClick={() => setEditing(true)}>
-            <img src={src} alt={alt} className={imgClassName} />
-            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ImageIcon className="w-4 h-4 text-white bg-black/50 p-1 rounded-full" />
-            </div>
+
+            {canEdit && (
+                <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                />
+            )}
         </div>
     );
 };

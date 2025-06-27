@@ -6,7 +6,7 @@ import { useEditMode } from '@/contexts/EditModeContext';
 
 interface InlineTextProps {
     id: string;
-    defaultValue: string;
+    defaultValue?: string;
     className?: string;
     as?: keyof JSX.IntrinsicElements;
     isEditable?: boolean;
@@ -14,28 +14,42 @@ interface InlineTextProps {
 
 export const InlineText = ({
                                id,
-                               defaultValue,
+                               defaultValue = '',
                                className = '',
                                as: Tag = 'span',
                                isEditable = true,
                            }: InlineTextProps) => {
-    const { updateItem, editedIds, isSaving } = useContent();
+    const { updateItem, createItem, editedIds, isSaving } = useContent();
     const { userRole } = useAuth();
-
     const { isEditMode } = useEditMode();
-    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
-    const canEdit = isEditMode && isAdmin;
 
-    const [value, setValue] = useState(defaultValue);
+    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+    const canEdit = isEditMode && isAdmin && isEditable;
+
+    const isMissing = !defaultValue;
+    const [value, setValue] = useState(defaultValue || '');
     const [editing, setEditing] = useState(false);
     const [hasSaved, setHasSaved] = useState(false);
 
+    const inferSectionFromId = (id: string) => id.split('-')[1] || 'misc';
+    const inferPageFromId = (id: string) => id.split('-')[0] || 'global';
+
     const handleBlur = () => {
         setEditing(false);
-        if (value !== defaultValue) {
-            updateItem(id, 'value', value);
-            setHasSaved(true);
+        if (value.trim() === defaultValue?.trim()) return;
+        if (isMissing) {
+            createItem({
+                id,
+                type: 'text',
+                value: value.trim(),
+                label: id,
+                section: inferSectionFromId(id),
+                page: inferPageFromId(id),
+            });
+        } else {
+            updateItem(id, 'value', value.trim());
         }
+        setHasSaved(true);
     };
 
     useEffect(() => {
@@ -46,7 +60,7 @@ export const InlineText = ({
     }, [hasSaved]);
 
     if (!canEdit) {
-        return <Tag className={className}>{defaultValue}</Tag>;
+        return <Tag className={className}>{defaultValue || ''}</Tag>;
     }
 
     return editing ? (
@@ -61,7 +75,7 @@ export const InlineText = ({
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') e.currentTarget.blur();
                     if (e.key === 'Escape') {
-                        setValue(defaultValue);
+                        setValue(defaultValue || '');
                         setEditing(false);
                     }
                 }}
@@ -76,10 +90,11 @@ export const InlineText = ({
         </div>
     ) : (
         <Tag
-            className={`cursor-pointer relative ${className}`}
+            className={`cursor-pointer relative text-muted-foreground ${className}`}
             onDoubleClick={() => setEditing(true)}
+            title={isMissing ? `Double-click to add content for "${id}"` : ''}
         >
-            {value}
+            {value || <em className="opacity-50">[ Click to add text for <code>{id}</code> ]</em>}
         </Tag>
     );
 };

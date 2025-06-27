@@ -138,10 +138,37 @@ export const useContent = () => {
         }, {});
     }, [content]);
 
+    const createItem = async (newItem: {
+        id: string;
+        page: string;
+        section: string;
+        type: "text" | "image" | "link" | "button";
+        label: string;
+        value: string;
+        href?: string;
+        alt?: string;
+    }) => {
+        try {
+            const res = await authFetch<ContentItem>(`${baseUrl}/api/admin/content`, {
+                method: "POST",
+                body: JSON.stringify([newItem]),
+            });
+
+            if (!res.success) throw new Error("Failed to create content");
+
+            // const saved = await res.json();
+            // Optional: update local state here if needed
+            console.log("Created content item:", res);
+        } catch (error) {
+            console.error("Error creating content:", error);
+        }
+    };
+
     return {
         content,
         contentById,
         isLoading,
+        createItem,
         isError,
         refetch,
         updateItem: (id: string, field: EditableField, value: string) =>

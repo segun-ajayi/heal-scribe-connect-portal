@@ -1,138 +1,120 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useContent } from '@/hooks/useContent';
-import { useAuth } from '@/contexts/AuthContext';
-import { useEditMode } from '@/contexts/EditModeContext';
-import { Check, Loader2, Link2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEditMode } from "@/contexts/EditModeContext";
+import { useContent } from "@/hooks/useContent";
+import {Link} from "react-router-dom";
 
 interface InlineLinkProps {
     id: string;
-    defaultLabel: string;
-    defaultHref: string;
-    as?: React.ElementType;
-    componentProps?: {
-        startIcon?: React.ReactNode;
-        endIcon?: React.ReactNode;
-        [key: string]: any;
-    };
-    className?: string;
-    target?: '_blank' | '_self';
+    defaultLabel?: string;
+    defaultHref?: string;
+    as?: keyof JSX.IntrinsicElements | React.ElementType;
+    componentProps?: Record<string, any>;
 }
 
 export const InlineLink = ({
                                id,
-                               defaultLabel,
-                               defaultHref,
-                               as,
+                               defaultLabel = "",
+                               defaultHref = "",
+                               as: Component = "a",
                                componentProps = {},
-                               className = '',
-                               target = '_self',
                            }: InlineLinkProps) => {
-    const { updateItem, editedIds, isSaving } = useContent();
+    const { updateItem, createItem } = useContent();
     const { userRole } = useAuth();
     const { isEditMode } = useEditMode();
 
-    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
-    const canEdit = isEditMode && isAdmin;
+    const isAdmin = userRole === "admin" || userRole === "super_admin";
+    const canEdit = isAdmin && isEditMode;
 
-    const [editing, setEditing] = useState(false);
     const [label, setLabel] = useState(defaultLabel);
     const [href, setHref] = useState(defaultHref);
-    const [hasSaved, setHasSaved] = useState(false);
+    const [editing, setEditing] = useState(false);
 
-    const editRef = useRef<HTMLDivElement>(null);
+    const isMissing = !defaultLabel && !defaultHref;
+
+    const inferSectionFromId = (id: string) => id.split("-")[1] || "misc";
+    const inferPageFromId = (id: string) => id.split("-")[0] || "global";
 
     const handleBlur = () => {
-        setTimeout(() => {
-            const active = document.activeElement as HTMLElement;
-            if (!editRef.current?.contains(active)) {
-                if (label !== defaultLabel) updateItem(id, 'value', label);
-                if (href !== defaultHref) updateItem(id, 'href', href);
-                if (label !== defaultLabel || href !== defaultHref) setHasSaved(true);
-                setEditing(false);
-            }
-        }, 0);
-    };
+        setEditing(false);
+        const cleanLabel = label.trim();
+        const cleanHref = href.trim();
 
-    useEffect(() => {
-        if (hasSaved) {
-            const timeout = setTimeout(() => setHasSaved(false), 1500);
-            return () => clearTimeout(timeout);
+        if (!cleanLabel || !cleanHref) return;
+
+        if (isMissing) {
+            createItem({
+                id,
+                type: "link",
+                value: cleanLabel,
+                href: cleanHref,
+                label: id,
+                section: inferSectionFromId(id),
+                page: inferPageFromId(id),
+            });
+        } else {
+            updateItem(id, "value", cleanLabel);
+            updateItem(id, "href", cleanHref);
         }
-    }, [hasSaved]);
-
-    const ComponentTag = as || 'a';
-    const { startIcon, endIcon, children, ...restProps } = componentProps;
-
-    const combinedChildren = (
-        <span className="inline-flex items-center gap-1">
-      {startIcon}
-            {label}
-            {endIcon}
-    </span>
-    );
+    };
 
     if (!canEdit) {
         return (
-            <Link to={defaultHref}>
-                <ComponentTag
-                    href={defaultHref}
-                    target={target}
-                    rel="noopener noreferrer"
-                    {...restProps}
+            <Link to={href}>
+                <Component
+                    href={href}
+                    {...componentProps}
+                    className={`cursor-pointer text-blue-600 hover:underline ${componentProps?.className || ""}`}
                 >
-                    {combinedChildren}
-                </ComponentTag>
+                    {label || (
+                        <em className="opacity-50">
+                            [ Click to add link for <code>{id}</code> ]
+                        </em>
+                    )}
+                </Component>
             </Link>
         );
     }
 
     return editing ? (
-        <div ref={editRef} className="space-y-2">
-            <div className="relative">
-                <input
-                    className={`border px-2 py-1 rounded text-sm w-full bg-white text-gray-900 pr-6 ${className}`}
-                    value={label}
-                    onChange={(e) => setLabel(e.target.value)}
-                    onBlur={handleBlur}
-                    placeholder="Link label"
-                    autoFocus
-                />
-                <div className="absolute right-1 top-1/2 -translate-y-1/2">
-                    {isSaving && editedIds.has(id) ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-                    ) : hasSaved ? (
-                        <Check className="w-4 h-4 text-green-500" />
-                    ) : (
-                        <Link2 className="w-4 h-4 text-gray-400" />
-                    )}
-                </div>
-            </div>
+        <div className="space-y-2">
             <input
-                className={`border px-2 py-1 rounded text-sm w-full bg-white text-gray-800 ${className}`}
+                type="text"
+                className="border rounded text-black px-2 py-1 w-full"
+                placeholder="Link label"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+            />
+            <input
+                type="text"
+                className="border rounded text-black px-2 py-1 w-full"
+                placeholder="https://example.com"
                 value={href}
                 onChange={(e) => setHref(e.target.value)}
                 onBlur={handleBlur}
-                placeholder="URL"
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") e.currentTarget.blur();
+                    if (e.key === "Escape") {
+                        setLabel(defaultLabel);
+                        setHref(defaultHref);
+                        setEditing(false);
+                    }
+                }}
             />
         </div>
     ) : (
-        <div className="flex items-center gap-2">
-            <ComponentTag
-                href={href}
-                target={target}
-                rel="noopener noreferrer"
-                {...restProps}
-            >
-                {combinedChildren}
-            </ComponentTag>
-            <button
-                type="button"
-                onClick={() => setEditing(true)}
-                className="text-sm text-blue-500 underline hover:text-blue-700"
-            >
-                Edit
-            </button>
-        </div>
+        <Component
+            href={href}
+            onDoubleClick={() => setEditing(true)}
+            title={isMissing ? `Click to create link for "${id}"` : ""}
+            {...componentProps}
+            className={`cursor-pointer text-blue-600 hover:underline ${componentProps?.className || ""}`}
+        >
+            {label || (
+                <em className="opacity-50">
+                    [ Click to add link for <code>{id}</code> ]
+                </em>
+            )}
+        </Component>
     );
 };
