@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import {useState, useEffect, useMemo} from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,38 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Star, Calendar, User, ExternalLink } from "lucide-react";
+import {usePublications, usePublicContent} from '@/hooks/usePublicContent';
+import {useRecentBlogPosts} from "@/hooks/useAdminData.ts"; // adjust path as needed
+// import { Publication } from '@/types';
+
 
 const Publications = () => {
+
+  const { data: content = [], isLoading, isError } = usePublicContent();
+  const [page, setPage] = useState(1);
+
+  const { data: myPublications = undefined, isLoading: isLoadingPublications } = usePublications(page);
+  console.log('My POPO: ', myPublications.json());
+  const publicationContent = useMemo(
+      () => content.filter((item) => item.page === "publications"),
+      [content]
+  );
+
+  const byId = useMemo(
+      () => Object.fromEntries(publicationContent.map((i) => [i.id, i])),
+      [publicationContent]
+  );
+
+  const get = (id: string) => byId[id]?.value || "";
+  const getAlt = (id: string) => byId[id]?.alt || "";
+
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const publicationsPerPage = 5;
+
+  console.log(publicationsPerPage);
 
   const publications = [
     {

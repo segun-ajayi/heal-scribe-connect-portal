@@ -6,9 +6,11 @@ import { useMemo } from "react";
 import { ArrowDown, ArrowUp, Trash } from "lucide-react";
 import {InlineText} from "@/components/ui/InlineText";
 
+interface CertificationListProps {
+    get?: (id: string) => any
+}
 
-
-export const CertificationList = () => {
+export const CertificationList = ({get}: CertificationListProps) => {
     const { data = [] } = usePublicContent();
     const { createItem, deleteItem } = useContent();
     const { userRole } = useAuth();
@@ -59,15 +61,24 @@ export const CertificationList = () => {
         <>
             {indices.map((index, i) => (
                 <div key={index} className="p-4 border rounded-lg relative group">
-                    <h3 className="font-semibold text-gray-900 mb-1">
-                        <InlineText id={`about-cert${index}-title`} />
-                    </h3>
-                    <p className="text-blue-600 text-sm font-medium">
-                        <InlineText id={`about-cert${index}-issuer`} />
-                    </p>
-                    <p className="text-gray-500 text-sm">
-                        Issued: <InlineText id={`about-cert${index}-year`} />
-                    </p>
+                    <InlineText
+                        id={`about-cert${index}-title`}
+                        defaultValue={get(`about-cert${index}-title`)}
+                        className="font-semibold text-gray-900 mb-1"
+                        as="h3"
+                    />
+                    <InlineText
+                        id={`about-cert${index}-issuer`}
+                        defaultValue={get(`about-cert${index}-issuer`)}
+                        className="text-blue-600 text-sm font-medium"
+                        as="p"
+                    />
+                    <InlineText
+                        id={`about-cert${index}-year`}
+                        defaultValue={get(`about-cert${index}-year`)}
+                        className="text-gray-500 text-sm"
+                        as="p"
+                    />
 
                     {canEdit && (
                         <div className="absolute top-2 right-2 flex space-x-2 opacity-0 group-hover:opacity-100 transition">

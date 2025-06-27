@@ -147,7 +147,7 @@ const About = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-6">
-              <AwardList />
+              <AwardList get={get} />
             </CardContent>
           </Card>
 
@@ -157,7 +157,7 @@ const About = () => {
               <InlineText id="about-certifications-title" defaultValue={get("about-certifications-title")} className="text-2xl" />
             </CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-4">
-              <CertificationList />
+              <CertificationList get={get} />
             </CardContent>
           </Card>
         </div>
