@@ -54,36 +54,36 @@ export const usePublicContent = () => {
     });
 };
 
-export const usePublications = (page = 1, category: string = 'all', refreshKey:number = 0) => {
-
-    return useQuery<publications>({
-        queryKey: ['my-publications', page, category, refreshKey],
-        queryFn: async () =>
-            await fetch(
-                `${import.meta.env.VITE_API_URL}/api/publications?page=${page}&category=${category}`, {}),
-        staleTime: Infinity,
-        refetchOnWindowFocus: false,
-        retry: 1,    });
-};
-
-// export const usePublications = (
-//     page = 1,
-//     category: string = 'all',
-//     refreshKey: number = 0
-// ) => {
+// export const usePublications = (page = 1, category: string = 'all', refreshKey:number = 0) => {
+//
 //     return useQuery<publications>({
 //         queryKey: ['my-publications', page, category, refreshKey],
-//         queryFn: async () => {
-//             const res = await fetch(
-//                 `${import.meta.env.VITE_API_URL}/api/publications?page=${page}&category=${category}`
-//             );
-//             if (!res.ok) {
-//                 throw new Error('Failed to fetch publications');
-//             }
-//             return res.json(); // ✅ Return parsed JSON here
-//         },
+//         queryFn: async () =>
+//             await fetch(
+//                 `${import.meta.env.VITE_API_URL}/api/publications?page=${page}&category=${category}`, {}),
 //         staleTime: Infinity,
 //         refetchOnWindowFocus: false,
-//         retry: 1,
-//     });
+//         retry: 1,    });
 // };
+
+export const usePublications = (
+    page = 1,
+    category: string = 'all',
+    refreshKey: number = 0
+) => {
+    return useQuery<publications>({
+        queryKey: ['my-publications', page, category, refreshKey],
+        queryFn: async () => {
+            const res = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/publications?page=${page}&category=${category}`
+            );
+            if (!res.ok) {
+                throw new Error('Failed to fetch publications');
+            }
+            return res.json(); // ✅ Return parsed JSON here
+        },
+        staleTime: Infinity,
+        refetchOnWindowFocus: false,
+        retry: 1,
+    });
+};

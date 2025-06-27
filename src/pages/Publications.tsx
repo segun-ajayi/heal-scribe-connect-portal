@@ -18,7 +18,7 @@ const Publications = () => {
   const [page, setPage] = useState(1);
 
   const { data: myPublications = undefined, isLoading: isLoadingPublications } = usePublications(page);
-  console.log('My POPO: ', myPublications.json());
+  console.log('My POPO: ', myPublications);
   const publicationContent = useMemo(
       () => content.filter((item) => item.page === "publications"),
       [content]
