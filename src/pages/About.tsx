@@ -68,7 +68,7 @@ const About = () => {
                   id="home-hero-image"
                   defaultSrc={get("about-hero-image")}
                   defaultAlt={getAlt("home-hero-image") || "Doctor illustration"}
-                  imgClassName="w-16 h-16 object-contain rounded-full"
+                  imgClassName="w-31 h-31 object-contain rounded-full"
               />
             </div>
             <InlineText
