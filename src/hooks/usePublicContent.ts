@@ -19,6 +19,7 @@ interface publications {
         content?: string;
         authors?: string;
         journal?: string;
+        impact?: string;
         url?: string;
         doi?: string;
         keywords?: string;
