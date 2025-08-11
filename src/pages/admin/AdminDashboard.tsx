@@ -10,8 +10,6 @@ import { useNavigate } from "react-router-dom";
 import {Button} from "@/components/ui/button.tsx";
 import {PaginationControls} from "@/components/ui/PaginationControls.tsx";
 
-
-
 const AdminDashboard = () => {
   const { user, userRole } = useAuth();
   const [page, setPage] = useState(1);

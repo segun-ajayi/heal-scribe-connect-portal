@@ -43,7 +43,7 @@ export const InlineImage = ({
         form.append("file", file);
 
         const token = localStorage.getItem("token");
-        const res = await fetch("https://your-worker.example.com/api/upload", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/upload`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,

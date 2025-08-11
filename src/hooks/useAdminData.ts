@@ -87,6 +87,7 @@ interface blogData {
     status?: string;
     scheduledFor?: string;
     publishedAt?: string;
+    created_at?: string;
   }[];
   limit?: number;
   page?: number;
