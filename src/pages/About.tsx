@@ -65,9 +65,9 @@ const About = () => {
             <div className="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
 
               <InlineImage
-                  id="home-hero-image"
+                  id="about-hero-image"
                   defaultSrc={get("about-hero-image")}
-                  defaultAlt={getAlt("home-hero-image") || "Doctor illustration"}
+                  defaultAlt={getAlt("about-hero-image") || "Doctor illustration"}
                   imgClassName="w-31 h-31 object-contain rounded-full"
               />
             </div>
