@@ -41,6 +41,39 @@ interface publications {
     success?: boolean;
 }
 
+interface blogs {
+    data?: {
+        id?: number;
+        title?: string;
+        excerpt?: string;
+        content?: string;
+        author?: string;
+        featured?: boolean;
+        date?: string;
+        readTime?: string;
+        currentRating?: string;
+        totalRatings?: string;
+        comments?: string;
+        category_id?: number;
+        category?: string;
+        status?: string;
+        likes?: number;
+        scheduledFor?: string;
+        publishedAt?: string;
+        created_at?: string;
+    }[];
+    categories?: {
+        id?: string;
+        name?: string;
+        slug?: string;
+        type?: string;
+    }[];
+    limit?: number;
+    page?: number;
+    total?: number;
+    success?: boolean;
+}
+
 export const usePublicContent = () => {
     return useQuery<ContentItem[]>({
         queryKey: ['public-content'],
@@ -80,6 +113,28 @@ export const usePublications = (
             );
             if (!res.ok) {
                 throw new Error('Failed to fetch publications');
+            }
+            return res.json(); // ✅ Return parsed JSON here
+        },
+        staleTime: Infinity,
+        refetchOnWindowFocus: false,
+        retry: 1,
+    });
+};
+
+export const useBlogs = (
+    page = 1,
+    category: string = 'all',
+    refreshKey: number = 0
+) => {
+    return useQuery<blogs>({
+        queryKey: ['blogs', page, category, refreshKey],
+        queryFn: async () => {
+            const res = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/blogs?page=${page}&category=${category}`
+            );
+            if (!res.ok) {
+                throw new Error('Failed to fetch blogs');
             }
             return res.json(); // ✅ Return parsed JSON here
         },

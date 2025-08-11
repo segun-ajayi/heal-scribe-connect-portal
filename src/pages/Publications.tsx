@@ -99,7 +99,7 @@ const Publications = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
           <Card>
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">30+</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">{ myPublications?.data?.length }</div>
               <div className="text-gray-600">Publications</div>
             </CardContent>
           </Card>

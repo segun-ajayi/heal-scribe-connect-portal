@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, {useMemo, useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,11 +12,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {InlineText} from "@/components/ui/InlineText.tsx";
+import {usePublicContent} from "@/hooks/usePublicContent.ts";
+import {InlineImage} from "@/components/ui/InlineImage.tsx";
 
 export const Header: React.FC = () => {
   const { user, userRole, signOut } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const navigate = useNavigate();
+  const { data: content = [], isLoading, isError } = usePublicContent();
+
+  const headerContent = useMemo(
+      () => content.filter((item) => item.page === "header"),
+      [content]
+  );
+
+  const byId = useMemo(
+      () => Object.fromEntries(headerContent.map((i) => [i.id, i])),
+      [headerContent]
+  );
+
+  const get = (id: string) => byId[id]?.value || "";
+  const getAlt = (id: string) => byId[id]?.alt || "";
 
   const handleSignOut = async () => {
     await signOut();
@@ -37,12 +54,27 @@ export const Header: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-sm">DA</span>
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                <InlineImage
+                    id="header-image"
+                    defaultSrc={get("header-image")}
+                    defaultAlt={getAlt("header-image") || "Doctor illustration"}
+                    imgClassName="w-8 h-8 object-contain rounded-full"
+                />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Dr. Ajayi</h1>
-                <p className="text-xs text-gray-600">Medical Practice</p>
+                <InlineText
+                    id="header-dr-name"
+                    defaultValue={get("header-dr-name")}
+                    className="text-xl font-bold text-gray-900"
+                    as="h1"
+                />
+                <InlineText
+                    id="header-dr-sub"
+                    defaultValue={get("header-dr-sub")}
+                    className="text-xs text-gray-600"
+                    as="p"
+                />
               </div>
             </div>
           </Link>

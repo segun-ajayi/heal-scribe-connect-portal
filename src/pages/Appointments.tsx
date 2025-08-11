@@ -1,6 +1,6 @@
 
 
-import { useState } from "react";
+import {useMemo, useState} from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Clock, MapPin, Phone, Mail, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {usePublicContent} from "@/hooks/usePublicContent.ts";
+import {InlineText} from "@/components/ui/InlineText.tsx";
 
 const Appointments = () => {
+  const { data: content = [], isLoading, isError } = usePublicContent();
+  const appointmentContent = useMemo(
+      () => content.filter((item) => item.page === "appointment"),
+      [content]
+  );
+
+  const byId = useMemo(
+      () => Object.fromEntries(appointmentContent.map((i) => [i.id, i])),
+      [appointmentContent]
+  );
+
+  const get = (id: string) => byId[id]?.value || "";
+  const getAlt = (id: string) => byId[id]?.alt || "";
+
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     firstName: "",
@@ -120,11 +136,18 @@ const Appointments = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Schedule an Appointment</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Take the first step towards better health. Schedule a consultation
-              with Dr. Funmilola Wuraola to discuss your concerns and treatment options.
-            </p>
+            <InlineText
+                id="appointment-hero-title"
+                defaultValue={get("appointment-hero-title")}
+                className="text-4xl font-bold text-gray-900 mb-4"
+                as="h1"
+            />
+            <InlineText
+                id="appointment-hero-subtitle"
+                defaultValue={get("appointment-hero-subtitle")}
+                className="text-xl text-gray-600 max-w-3xl mx-auto"
+                as="p"
+            />
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
@@ -347,22 +370,52 @@ const Appointments = () => {
                   <div className="flex items-start">
                     <MapPin className="w-5 h-5 mr-2 mt-1 text-blue-600" />
                     <div>
-                      <p className="font-medium">Obafemi Awolowo University Teaching Hospitals Complex</p>
-                      <p className="text-gray-600">Ile-Ife<br />Osun State<br />Nigeria</p>
+                      <InlineText
+                          id="appointment-contact-address1"
+                          defaultValue={get("appointment-contact-address1")}
+                          className="font-medium"
+                          as="p"
+                      />
+                      <InlineText
+                          id="appointment-contact-address2"
+                          defaultValue={get("appointment-contact-address2")}
+                          className="text-gray-600"
+                          as="p"
+                      />
                     </div>
                   </div>
                   <div className="flex items-center">
                     <Phone className="w-5 h-5 mr-2 text-blue-600" />
                     <div>
-                      <p className="font-medium">+234 (036) 230-0000</p>
-                      <p className="text-sm text-gray-600">Mon-Fri: 8:00 AM - 5:00 PM</p>
+                      <InlineText
+                          id="appointment-contact-phone"
+                          defaultValue={get("appointment-contact-phone")}
+                          className="font-medium"
+                          as="p"
+                      />
+                      <InlineText
+                          id="appointment-contact-time"
+                          defaultValue={get("appointment-contact-time")}
+                          className="text-gray-600"
+                          as="p"
+                      />
                     </div>
                   </div>
                   <div className="flex items-center">
                     <Mail className="w-5 h-5 mr-2 text-blue-600" />
                     <div>
-                      <p className="font-medium">appointments@oauthc.com</p>
-                      <p className="text-sm text-gray-600">24-hour response time</p>
+                      <InlineText
+                          id="appointment-contact-email"
+                          defaultValue={get("appointment-contact-email")}
+                          className="font-medium"
+                          as="p"
+                      />
+                      <InlineText
+                          id="appointment-contact-response_time"
+                          defaultValue={get("appointment-contact-response_time")}
+                          className="text-gray-600"
+                          as="p"
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -380,20 +433,44 @@ const Appointments = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span>Monday - Friday</span>
-                      <span>8:00 AM - 5:00 PM</span>
+                      <span>
+                        <InlineText
+                          id="appointment-contact-response_time"
+                          defaultValue={get("appointment-contact-response_time")}
+                          className="text-gray-600"
+                          as="span"
+                        />
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Saturday</span>
-                      <span>9:00 AM - 1:00 PM</span>
+                      <span>
+                        <InlineText
+                            id="appointment-contact-weekdays"
+                            defaultValue={get("appointment-contact-weekdays")}
+                            className="text-gray-600"
+                            as="span"
+                        />
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Sunday</span>
-                      <span>Closed</span>
+                      <span>
+                        <InlineText
+                            id="appointment-contact-saturday"
+                            defaultValue={get("appointment-contact-saturday")}
+                            className="text-gray-600"
+                            as="span"
+                        />
+                      </span>
                     </div>
                     <div className="pt-2 border-t">
-                      <p className="text-sm text-gray-600">
-                        Emergency consultations available 24/7
-                      </p>
+                      <InlineText
+                          id="appointment-contact-sunday"
+                          defaultValue={get("appointment-contact-sunday")}
+                          className="text-gray-600"
+                          as="span"
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -407,18 +484,49 @@ const Appointments = () => {
                 <CardContent>
                   <div className="space-y-3">
                     <div>
-                      <h4 className="font-medium text-gray-900">Initial Consultation</h4>
-                      <p className="text-sm text-gray-600">60-90 minutes comprehensive evaluation</p>
+                      <InlineText
+                          id="appointment-expect-title1"
+                          defaultValue={get("appointment-expect-title1")}
+                          className="font-medium text-gray-900"
+                          as="h4"
+                      />
+                      <InlineText
+                          id="appointment-expect-answer1"
+                          defaultValue={get("appointment-expect-answer1")}
+                          className="text-sm text-gray-600"
+                          as="p"
+                      />
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-900">Follow-up Visits</h4>
-                      <p className="text-sm text-gray-600">30-45 minutes progress assessment</p>
+                      <InlineText
+                          id="appointment-expect-title2"
+                          defaultValue={get("appointment-expect-title2")}
+                          className="font-medium text-gray-900"
+                          as="h4"
+                      />
+                      <InlineText
+                          id="appointment-expect-answer2"
+                          defaultValue={get("appointment-expect-answer2")}
+                          className="text-sm text-gray-600"
+                          as="p"
+                      />
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-900">Please Bring</h4>
+                      <InlineText
+                          id="appointment-expect-title3"
+                          defaultValue={get("appointment-expect-title3")}
+                          className="font-medium text-gray-900"
+                          as="h4"
+                      />
+                      <InlineText
+                          id="appointment-expect-answer3"
+                          defaultValue={get("appointment-expect-answer3")}
+                          className="text-sm text-gray-600"
+                          as="p"
+                      />
                       <ul className="text-sm text-gray-600 mt-1">
                         <li>• Valid ID card</li>
-                        <li>• Insurance card (if applicable)</li>
+                        {/*<li>• Insurance card (if applicable)</li>*/}
                         <li>• Previous medical records</li>
                         <li>• Current medication list</li>
                       </ul>
